@@ -47,7 +47,7 @@ class MarieInterpreter {
 	public outputBuffer = new Array();
 	public inputBuffer = new Array();
 
-	public delayInMS = 0;
+	public delayInMS = 250;
 
 	public onMemoryChangedDelegate: (address: number, value: number) => void;
 	public onNeedsInputDelegate: () => void;
@@ -112,7 +112,7 @@ class MarieInterpreter {
 		lines.forEach((line,index) => {
 			line = line.trim();
 			if (!line) return;
-			var i: Instruction = { opcode: null };
+			var i: Instruction = { opcode: null, linenumber: null };
 			if (line.indexOf(",") != -1) {
 				var split = line.split(",");
 				i.label = split[0].trim();

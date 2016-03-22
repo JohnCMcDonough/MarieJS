@@ -1,0 +1,53 @@
+div.mariejs-row {
+	margin-top:15px;
+}
+div.mariejs-editor > .panel textarea {
+	min-height: 600px;
+	width: 100%;
+	resize: vertical;
+	overflow-y: scroll;
+	font-family: monospace;
+	tab-size : 4;
+}
+
+.mariejs-registers table th {
+	width: 50px;
+}
+
+.mariejs-registers-buffer {
+	width: 100%;
+	resize: none;
+	height: 200px;
+	font-family: monospace;
+}
+
+
+
+.mariejs-memoryTable, .mariejs-memoryTable table {
+	width: 100%;
+	font-family: monospace;
+	font-size: 12px;
+}
+
+.mariejs-memoryTable .header {
+	width: calc(100% - 15px);
+	padding:2px;
+}
+
+.mariejs-memoryTable th {
+	width: calc(100% / 17);
+}
+
+.mariejs-memoryTable .scrollable {
+	max-height: 400px;
+	overflow-x: hidden;
+}
+
+.mariejs-memoryTable:not(.header) {
+	border-collapse: collapse;
+}
+
+.mariejs-memoryTable:not(.header) table td {
+	padding:2px;
+	border: 1px solid #AAA;
+}
