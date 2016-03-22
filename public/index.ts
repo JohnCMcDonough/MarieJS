@@ -39,7 +39,7 @@ b, DEC 15`;
 			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
     }
-
+    highlightedLine:CodeMirror.LineHandle;
     lintCode() {
         if (this.editor) {
             // this.editor.clearGutter("note-gutter");
@@ -58,6 +58,10 @@ b, DEC 15`;
                     clearTimeout(this.debounceTimer);
                 }
                 this.debounceTimer = setTimeout(this.safeApply.bind(this), 5);
+                var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
+                if(this.highlightedLine)
+                    this.editor.removeLineClass(this.highlightedLine,"background","active-line");
+                this.highlightedLine = this.editor.addLineClass(line,"background","active-line");
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -91,6 +95,8 @@ b, DEC 15`;
 
 	assemble() {
 		this.lintCode();
+        if(this.editor && this.highlightedLine) 
+            this.editor.removeLineClass(this.highlightedLine,"background","active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
 		}

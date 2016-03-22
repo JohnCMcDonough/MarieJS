@@ -75,14 +75,31 @@ class MarieInterpreter {
             this.performFullCompile(instructions);
         }
     }
-    
-    public lint(instructions:string) {
+
+    public lint(instructions: string) {
         var ins = this.tokenize(instructions);
         var symbols = this.buildSymbolTable(ins);
-        var assembled = this.assemble(ins,symbols);
+        var assembled = this.assemble(ins, symbols);
     }
-    
+
+    private reset() {
+        this.isFinishedExecuting = false;
+        this.isRunning = false;
+        this.isWaitingOnInput = false;
+        this.IRToLine = [];
+        this.memory = undefined;
+        this.Accumulator = 0;
+        this.ProgramCounter = 0;
+        this.Input = 0;
+        this.MemoryBufferRegister = 0;
+        this.MemoryAddressRegister = 0;
+        this.InstructionRegister = 0;
+        this.outputBuffer = [];
+        this.inputBuffer = [];
+    }
+
     public performFullCompile(instructions: string) {
+        this.reset();
         var objects = this.tokenize(instructions);
         // console.log(objects);
         this.symbolTable = this.buildSymbolTable(objects);
@@ -102,14 +119,14 @@ class MarieInterpreter {
 
     public assemble(instructions: Array<Instruction>, symbolTable): Array<Instruction> {
         instructions = JSON.parse(JSON.stringify(instructions));
-        var errors:Array<CompilerError> = [];
+        var errors: Array<CompilerError> = [];
         for (var i = 0; i < instructions.length; i++) {
             var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-            if (opcode === undefined){errors.push(new CompilerError(instructions[i].linenumber, " Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode)); continue;}
+            if (opcode === undefined) { errors.push(new CompilerError(instructions[i].linenumber, " Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode)); continue; }
             else instructions[i].opcode = opcode;
 
             if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
-                if (instructions[i].param === undefined){
+                if (instructions[i].param === undefined) {
                     errors.push(new CompilerError(instructions[i].linenumber, " Missing parameter for opcode: " + Opcode[opcode], ("" + instructions[i].opcode)));
                     continue;
                 }
@@ -123,7 +140,7 @@ class MarieInterpreter {
             }
             // console.log(instructions[i]);
         }
-        if(errors.length > 0) throw errors;
+        if (errors.length > 0) throw errors;
         return instructions
     }
 
@@ -178,7 +195,7 @@ class MarieInterpreter {
                 memory[i] = (instructions[i].opcode & 0xF) << 12;
                 memory[i] |= instructions[i].param & 0x0FFF;
             }
-            this.IRToLine[i] = this.instructions[i].linenumber;
+            this.IRToLine[memory[i]] = this.instructions[i].linenumber;
         }
         return memory;
     }

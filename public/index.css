@@ -29,6 +29,9 @@ div.mariejs-editor > .panel textarea {
 	border-bottom: dotted 1px red !important;
 }
 
+.active-line {
+    background-color: yellow !important;
+}
 
 
 .mariejs-memoryTable, .mariejs-memoryTable table {
