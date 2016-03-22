@@ -23,7 +23,7 @@ b, DEC 15`;
 		lineWrapping: true,
 		lineNumbers: true,
 		readOnly: false,
-		gutters: ['note-gutter'],
+		gutters: ['breakpoint-gutter'],
 		firstLineNumber: 0,
 		lineNumberFormatter: (ln) => "0x" + ln.toString(16),
 	}
@@ -39,13 +39,13 @@ b, DEC 15`;
 			clearTimeout(this.lintTimeout);
 			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
-		
+
 		this.$scope.$watch('mc.cpuFreq', () => {
-			this.interpreter.delayInMS = 1000/this.cpuFreq;
+			this.interpreter.delayInMS = 1000 / this.cpuFreq;
 		})
-		this.interpreter.delayInMS = 1000/this.cpuFreq;
+		this.interpreter.delayInMS = 1000 / this.cpuFreq;
     }
-    highlightedLine:CodeMirror.LineHandle;
+    highlightedLine: CodeMirror.LineHandle;
     lintCode() {
         if (this.editor) {
             // this.editor.clearGutter("note-gutter");
@@ -65,9 +65,10 @@ b, DEC 15`;
                 }
                 this.debounceTimer = setTimeout(this.safeApply.bind(this), 5);
                 var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
-                if(this.highlightedLine)
-                    this.editor.removeLineClass(this.highlightedLine,"background","active-line");
-                this.highlightedLine = this.editor.addLineClass(line,"background","active-line");
+                if (this.highlightedLine)
+                    this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
+                this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
+				if (this.breakpoints[line]) this.interpreter.pauseExecution();
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -101,13 +102,13 @@ b, DEC 15`;
 
 	assemble() {
 		this.lintCode();
-        if(this.editor && this.highlightedLine) 
-            this.editor.removeLineClass(this.highlightedLine,"background","active-line");
+        if (this.editor && this.highlightedLine)
+            this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
 		}
 	}
-	
+
 	playPause() {
 		if (this.interpreter.isRunning) {
 			this.interpreter.pauseExecution();
@@ -117,10 +118,36 @@ b, DEC 15`;
 		}
 	}
 
-	codemirrorLoaded(editor) {
+	codemirrorLoaded(editor: CodeMirror.Editor) {
 		this.editor = editor;
-		if (!editor.options.gutters) editor.gutters = [];
-		editor.options.gutters.push("note-gutter");
+		this.editor.on("gutterClick", this.codeEditorGutterClick.bind(this));
+		this.editor.on("change",this.rebuildBreakPoints.bind(this));
+	}
+
+	private breakpoints: Array<boolean> = [];
+	codeEditorGutterClick(instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) {
+		// console.log("GUTTER CLICK!", this.breakpoints);
+		if (!this.breakpoints[line]) {
+			var icon = document.createElement("i");
+			icon.innerHTML = "-";
+			instance.setGutterMarker(line, gutter, icon);
+			this.breakpoints[line] = true;
+		} else {
+			instance.setGutterMarker(line, gutter, undefined);
+			this.breakpoints[line] = false;
+		}
+	}
+
+	rebuildBreakPoints() {
+		this.breakpoints = [];
+		var lineNum = 0;
+		this.editor.getDoc().eachLine(l => {
+			if (this.editor.lineInfo(l)['gutterMarkers'] && this.editor.lineInfo(l)['gutterMarkers']['breakpoint-gutter']) {
+				this.breakpoints[lineNum] = true;
+			}
+			// console.log(lineNum, l, this.editor.lineInfo(l), this.breakpoints[lineNum])
+			lineNum++;
+		})
 	}
 
 	safeApply(fn?: () => void) {

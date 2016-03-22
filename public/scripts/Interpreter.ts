@@ -146,13 +146,9 @@ class MarieInterpreter {
 
     public tokenize(instructions: string): Array<Instruction> {
         var ins: Array<Instruction> = [];
-
         instructions = instructions.replace("\r\n", "\n");
         instructions = instructions.replace("\r", "\n");
-        instructions = instructions.replace("\n+", "\n");
         instructions = instructions.replace(/\t+/g, " ");
-        instructions = instructions.trim();
-        // console.log(instructions);
         var lines = instructions.split("\n");
         lines.forEach((line, index) => {
             line = line.trim();
