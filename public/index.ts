@@ -10,7 +10,7 @@ OUTPUT
 HALT
 a, DEC 10
 b, DEC 15`;
-    codeError: string = "";
+    codeErrors: string[];
     lineError: number = -1;
     objectError: string = "";
     viewType: string = "HEX";
@@ -31,6 +31,11 @@ b, DEC 15`;
     static $inject = ["$scope", "$rootScope"];
     constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
         $scope['mc'] = this; 
+		
+		this.$scope['codemirrorLoaded'] = this.codemirrorLoaded.bind(this);
+		this.$scope.$watch('mc.code', () => {
+			this.updateCode();
+		})
     }
 	
 	lintCode() {
@@ -42,7 +47,7 @@ b, DEC 15`;
             // this.editor.clearGutter("note-gutter");
             this.editor.getDoc().getAllMarks().forEach(mark => mark.clear())
         }
-        this.codeError = "";
+		this.codeErrors = [];
         this.instructionsCount = 0;
         if (this.interpreter && this.interpreter.pauseExecution) {
             this.interpreter.pauseExecution()
@@ -67,11 +72,10 @@ b, DEC 15`;
             }
         }
         catch (err) {
-            (<Array<CompilerError>>err).forEach(err => {
-                this.codeError += "Error on Line " + err.lineNumber + ": " + (<CompilerError>err).errorstring;
-                this.lineError = (err).lineNumber - 1
+            this.codeErrors = (<Array<CompilerError>>err).map(err => {
+                var eString = "Error on Line " + err.lineNumber + ": " + (<CompilerError>err).errorstring;
+                err.lineNumber--;
                 this.objectError = (err).object;
-                console.log("had error", this.editor, this.lineError, "Error on Line " + err.lineNumber + ": " + (<CompilerError>err).errorstring);
                 if (this.editor) {
                     console.log("found editor object");
                     // var icon = document.createElement("p");
@@ -79,22 +83,22 @@ b, DEC 15`;
                     // var lm = this.editor.setGutterMarker(this.lineError, "note-gutter", icon);
                     // console.log(lm);
                     // this.editor.doc.addLineClass(this.lineError, "text", "line-error");
-                    var line = this.editor.getDoc().getLine(this.lineError);
+                    var line = this.editor.getDoc().getLine(err.lineNumber);
                     var char = line.indexOf(this.objectError);
                     if (char != -1)
-                        this.editor.getDoc().markText({ line: this.lineError, ch: char }, { line: this.lineError, ch: char + this.objectError.length }, { className: "line-error" });
+                        this.editor.getDoc().markText({ line: err.lineNumber, ch: char }, { line: err.lineNumber, ch: char + this.objectError.length }, { className: "line-error" });
                     else {
-                        this.editor.getDoc().markText({ line: this.lineError, ch: 0 }, { line: this.lineError, ch: line.length }, { className: "line-error" });
+                        this.editor.getDoc().markText({ line: err.lineNumber, ch: 0 }, { line: err.lineNumber, ch: line.length }, { className: "line-error" });
                     }
-                    this.safeApply();
                 }
-            })
-        };
+				return eString;
+            });
+        }
+		this.safeApply();
     }
 
 	codemirrorLoaded(editor) {
 		this.editor = editor;
-		console.log("Got editor");
 		if (!editor.options.gutters) editor.gutters = [];
 		editor.options.gutters.push("note-gutter");
 	}

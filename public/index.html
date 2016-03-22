@@ -20,12 +20,14 @@
 				<div class="col-sm-6 mariejs-editor">
 					<div class="panel panel-primary">
 						<div class="panel-heading">Editor</div>
-						<textarea ui-codemirror="{ onLoad : mc.codemirrorLoaded }" ui-codemirror-opts="mc.editorOptions" ng-allow-tab spellcheck="false"
+						<textarea ui-codemirror="{ onLoad : codemirrorLoaded }" ui-codemirror-opts="mc.editorOptions" ng-allow-tab spellcheck="false"
 						ng-model="mc.code"></textarea>
 						<div class="panel-footer clearfix">
-							<span class="text-danger">{{mc.codeError}}</span>
 							<button class="btn btn-sm btn-primary pull-right" ng-click="mc.updateCode()">Assemble</button>
 						</div>
+					</div>
+					<div class="alert alert-danger" ng-if="mc.codeErrors.length">
+						<span ng-repeat="error in mc.codeErrors">{{error}}<br></span>
 					</div>
 				</div>
 				<div class="col-sm-6">
