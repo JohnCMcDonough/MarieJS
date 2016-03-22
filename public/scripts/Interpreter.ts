@@ -26,6 +26,11 @@ interface Instruction {
 	linenumber: number
 }
 
+class CompilerError {
+	constructor(public lineNumber: number, public errorstring: string, public object: string) {
+	}
+}
+
 class MarieInterpreter {
 
 	public Accumulator = 0x0000;
@@ -55,7 +60,7 @@ class MarieInterpreter {
 	public onExecutionResumed: () => void;
 	public onExecutionFinished: () => void;
 	public onOutput: (char: string) => void;
-	public onTick:()=>void
+	public onTick: () => void
 
 	constructor(instructions: string) {
 		var objects = this.convertToObjects(instructions);
@@ -82,14 +87,14 @@ class MarieInterpreter {
 	private assemble(instructions: Array<Instruction>): Array<Instruction> {
 		for (var i = 0; i < instructions.length; i++) {
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-			if (opcode === undefined) throw new Error("Error: line " + instructions[i].linenumber + " Invalid Instruction " + JSON.stringify(instructions[i]));
+			if (opcode === undefined) throw new CompilerError(instructions[i].linenumber, " Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode);
 			else instructions[i].opcode = opcode;
-			
+
 			if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
 				if (instructions[i].param === undefined)
-					throw new Error("Error: line " + instructions[i].linenumber + " Missing parameter for opcode: " + Opcode[opcode]);
+					throw new CompilerError(instructions[i].linenumber, " Missing parameter for opcode: " + Opcode[opcode], ("" + instructions[i].opcode));
 				if (opcode != Opcode.SKIPCOND && this.symbolTable[("" + instructions[i].param).trim()] === undefined) {
-					throw new Error("Error: line " + instructions[i].linenumber + " Can't find symbol: " + instructions[i].param);
+					throw new CompilerError(instructions[i].linenumber, " Can't find symbol: " + instructions[i].param, ("" + instructions[i].param));
 				} else {
 					if (opcode != Opcode.SKIPCOND)
 						instructions[i].param = this.symbolTable[instructions[i].param];
@@ -109,7 +114,7 @@ class MarieInterpreter {
 		instructions = instructions.trim();
 		// console.log(instructions);
 		var lines = instructions.split("\n");
-		lines.forEach((line,index) => {
+		lines.forEach((line, index) => {
 			line = line.trim();
 			if (!line) return;
 			var i: Instruction = { opcode: null, linenumber: null };
@@ -198,7 +203,7 @@ class MarieInterpreter {
 			this.InstructionRegister = this.memory[this.MemoryAddressRegister];
 			this.ProgramCounter++;
 			this.interpret();
-			if(this.onTick) this.onTick();
+			if (this.onTick) this.onTick();
 		}
 	}
 
@@ -207,10 +212,7 @@ class MarieInterpreter {
 		if (!this.isWaitingOnInput && this.isRunning && !this.isFinishedExecuting)
 			this.step();
 		if (this.isRunning && !this.isFinishedExecuting)
-			if (this.delayInMS == 0)
-				setImmediate(this.run.bind(this));
-			else
-				setTimeout(this.run.bind(this), this.delayInMS);
+			setTimeout(this.run.bind(this), this.delayInMS);
 	}
 
 	interpret() {

@@ -21,6 +21,14 @@ div.mariejs-editor > .panel textarea {
 	font-family: monospace;
 }
 
+.mariejs-registers-input-buffer {
+	height: 160px;
+}
+
+.line-error{
+	border-bottom: dotted 1px red !important;
+}
+
 
 
 .mariejs-memoryTable, .mariejs-memoryTable table {

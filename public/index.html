@@ -20,7 +20,7 @@
 				<div class="col-sm-6 mariejs-editor">
 					<div class="panel panel-primary">
 						<div class="panel-heading">Editor</div>
-						<textarea ui-codemirror ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
+						<textarea ui-codemirror="{ onLoad : codemirrorLoaded }" ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
 						<div class="panel-footer clearfix">
 							<span class="text-danger">{{mc.codeError}}</span>
 							<button class="btn btn-sm btn-primary pull-right" ng-click="mc.updateCode()">Assemble</button>
@@ -67,7 +67,8 @@
 								</div>
 								<div class="col-sm-4">
 									<label>Input Buffer</label>
-									<textarea class="mariejs-registers-buffer"></textarea>
+									<textarea ng-model="inputBuffer" class="mariejs-registers-buffer mariejs-registers-input-buffer"></textarea>
+									<button class="btn btn-primary btn-block" ng-click="mc.interpreter.sendInput(inputBuffer);inputBuffer = '';">Send Input</button>
 								</div>
 								<div class="col-sm-4">
 									<label>Output Buffer</label>
