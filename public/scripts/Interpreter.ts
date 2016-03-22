@@ -123,7 +123,7 @@ class MarieInterpreter {
 			i.opcode = <Opcode><any>split[0];
 			if (split.length >= 2)
 				i.param = <number><any>split[1];
-			i.linenumber = index;
+			i.linenumber = index + 1;
 			ins.push(i)
 		})
 		return ins;
