@@ -46,7 +46,11 @@ class MarieInterpreter {
     public symbolTable: { [label: string]: number };
     public instructions: Array<Instruction>;
     public rawInstructions: Array<Instruction>;
+<<<<<<< HEAD
     public memory = new Int16Array(2048);
+=======
+    public memory: Int16Array;
+>>>>>>> 2479b84dc07e5af09d6d8533291e2aced97aa4b6
     public org = 0;
 
     public outputBuffer = new Array();
@@ -76,7 +80,11 @@ class MarieInterpreter {
         }
     }
     
+<<<<<<< HEAD
     public lint(instructions:string) {
+=======
+    public lent(instructions:string) {
+>>>>>>> 2479b84dc07e5af09d6d8533291e2aced97aa4b6
         var ins = this.tokenize(instructions);
         var symbols = this.buildSymbolTable(ins);
         var assembled = this.assemble(ins,symbols);
