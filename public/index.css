@@ -42,7 +42,7 @@ div.mariejs-editor > .panel textarea {
 	padding:2px;
 }
 
-.mariejs-memoryTable th {
+.mariejs-memoryTable th,.mariejs-memoryTable td {
 	width: calc(100% / 17);
 }
 

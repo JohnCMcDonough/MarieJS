@@ -13,29 +13,22 @@ b, DEC 15`;
     codeError: string = "";
     lineError: number = -1;
 	objectError: string = "";
-	viewType: "HEX" | "ASCII" | "DEC" = "HEX";
+	viewType: string = "HEX";
 
     private debounceTimer = 0;
     public instructionsCount = 0;
 
+	private editorOptions: CodeMirror.EditorConfiguration = {
+		lineWrapping: true,
+		lineNumbers: true,
+		readOnly: false,
+		gutters: ['note-gutter']
+	}
 	private editor: CodeMirror.Editor;
 
     static $inject = ["$scope", "$rootScope"];
     constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
-        $scope['mc'] = this;
-        $scope['editorOptions'] = {
-            lineWrapping: true,
-            lineNumbers: true,
-            readOnly: false,
-            gutters: ['note-gutter']
-        }
-        $scope['codemirrorLoaded'] = (editor) => {
-            this.editor = editor;
-            console.log("Got editor");
-            if (!editor.options.gutters) editor.gutters = [];
-            editor.options.gutters.push("note-gutter");
-        }
-        //TODO: 
+        $scope['mc'] = this; 
     }
 
     updateCode() {
@@ -92,6 +85,13 @@ b, DEC 15`;
 		}
 	}
 
+	codemirrorLoaded(editor) {
+		this.editor = editor;
+		console.log("Got editor");
+		if (!editor.options.gutters) editor.gutters = [];
+		editor.options.gutters.push("note-gutter");
+	}
+
 	safeApply(fn?: () => void) {
 		var phase = this.$scope.$root.$$phase;
 		if (phase == '$apply' || phase == '$digest') {
@@ -143,7 +143,7 @@ app.directive('memoryTable', () => {
 					<tbody>
 						<tr ng-repeat="row in rows">
 							<th>{{row | toHex | padHex:3}}</th>
-							<td ng-if="viewtype == 'HEX'" ng-repeat="col in cols" ng-class="{flash:onChange[row+col]}">
+							<td ng-repeat="col in cols" ng-class="{flash:onChange[row+col]}">
 								<span ng-if="viewtype == 'HEX'">{{memory[row + col] | toHex | padHex:4}}</span>
 								<span ng-if="viewtype == 'ASCII'">{{memory[row + col] | toASCII}}</span>
 								<span ng-if="viewtype == 'DEC'">{{memory[row + col]}}</span>

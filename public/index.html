@@ -20,7 +20,7 @@
 				<div class="col-sm-6 mariejs-editor">
 					<div class="panel panel-primary">
 						<div class="panel-heading">Editor</div>
-						<textarea ui-codemirror="{ onLoad : codemirrorLoaded }" ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false"
+						<textarea ui-codemirror="{ onLoad : mc.codemirrorLoaded }" ui-codemirror-opts="mc.editorOptions" ng-allow-tab spellcheck="false"
 						ng-model="mc.code"></textarea>
 						<div class="panel-footer clearfix">
 							<span class="text-danger">{{mc.codeError}}</span>
