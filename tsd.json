@@ -5,8 +5,23 @@
   "path": "typings",
   "bundle": "typings/tsd.d.ts",
   "installed": {
+    "github-electron/github-electron.d.ts": {
+      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
     "node/node.d.ts": {
-      "commit": "6766ed1d0faf02ede9e2edf2e66bbb2388c825ec"
+      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
+    "angularjs/angular.d.ts": {
+      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
+    "jquery/jquery.d.ts": {
+      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
+    "angular-ui-router/angular-ui-router.d.ts": {
+      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
+    "async/async.d.ts": {
+      "commit": "0a6894d9ecad95abc88b00109f6f81c80b109e81"
     }
   }
 }

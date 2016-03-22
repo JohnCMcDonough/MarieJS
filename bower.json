@@ -1,0 +1,19 @@
+{
+  "name": "Assignment2",
+  "version": "0.0.0",
+  "homepage": "https://github.com/tutman96/SWE3313-Assignment2",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "angularjs#~1.4.7",
+    "angular-ui-router": "~0.2.15",
+    "font-awesome": "~4.4.0"
+  }
+}
