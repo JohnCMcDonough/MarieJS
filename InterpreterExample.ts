@@ -1,7 +1,7 @@
 /// <reference path="typings/tsd.d.ts"/>
 import fs = require("fs");
-import MarieInterpreter = require("./public/scripts/Interpreter");
-var assembly = fs.readFileSync("../../JS2Marie/compiledAssembly.mas").toString();
+var MarieInterpreter = require("./public/scripts/Interpreter");
+var assembly = fs.readFileSync("../JS2Marie/compiledAssembly.mas").toString();
 var interpreter = new MarieInterpreter.MarieInterpreter(assembly);
 
 function pretty(num: number) {
@@ -16,15 +16,17 @@ function pretty(num: number) {
 // }
 
 // var i = 1;
-// while(i < compiler.memory.length + 1) {
-// 	process.stdout.write(pretty(compiler.memory[i-1]));
+// while(i < interpreter.memory.length + 1) {
+// 	process.stdout.write(pretty(interpreter.memory[i-1]));
 // 	if(i % 16 == 0)
 // 		process.stdout.write('\n');
 // 	i++
 // }
-// compiler.inputBuffer = "John\0".split("");
+// interpreter.inputBuffer = "John\0".split("");
 
 // console.log("AC\tIR\tMAR\tMBR\tPC");
+
+// console.log(interpreter.rawInstructions);
 
 interpreter.onNeedsInputDelegate = ()=>{
 	process.stdout.write("> ");

@@ -23,6 +23,7 @@ interface Instruction {
 	opcode: Opcode;
 	label?: string,
 	param?: number
+	linenumber: number
 }
 
 class MarieInterpreter {
@@ -39,6 +40,7 @@ class MarieInterpreter {
 	public isFinishedExecuting = false;
 	public symbolTable: { [label: string]: number };
 	public instructions: Array<Instruction>;
+	public rawInstructions: Array<Instruction>;
 	public memory: Int16Array;
 	public org = 0;
 
@@ -52,7 +54,7 @@ class MarieInterpreter {
 	public onExecutionPaused: () => void;
 	public onExecutionResumed: () => void;
 	public onExecutionFinished: () => void;
-	public onOutput:(char:string)=>void;
+	public onOutput: (char: string) => void;
 
 	constructor(instructions: string) {
 		var objects = this.convertToObjects(instructions);
@@ -62,6 +64,7 @@ class MarieInterpreter {
 		}
 		// console.log(objects);
 		this.symbolTable = this.buildSymbolTable(objects);
+		this.rawInstructions = JSON.parse(JSON.stringify(objects));
 		this.instructions = this.assemble(objects);
 		this.memory = this.fillMemory(this.instructions);
 	}
@@ -77,12 +80,21 @@ class MarieInterpreter {
 
 	private assemble(instructions: Array<Instruction>): Array<Instruction> {
 		for (var i = 0; i < instructions.length; i++) {
-			if (this.symbolTable[instructions[i].param] != undefined) {
-				instructions[i].param = this.symbolTable[instructions[i].param];
-			}
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-			if (opcode === undefined) throw new Error(`Invalid Instruction '${instructions[i].opcode}'`);
+			if (opcode === undefined) throw new Error("Error: line " + instructions[i].linenumber + " Invalid Instruction " + JSON.stringify(instructions[i]));
 			else instructions[i].opcode = opcode;
+			
+			if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
+				if (instructions[i].param === undefined)
+					throw new Error("Error: line " + instructions[i].linenumber + " Missing parameter for opcode: " + Opcode[opcode]);
+				if (opcode != Opcode.SKIPCOND && this.symbolTable[("" + instructions[i].param).trim()] === undefined) {
+					throw new Error("Error: line " + instructions[i].linenumber + " Can't find symbol: " + instructions[i].param);
+				} else {
+					if (opcode != Opcode.SKIPCOND)
+						instructions[i].param = this.symbolTable[instructions[i].param];
+				}
+			}
+			// console.log(instructions[i]);
 		}
 		return instructions
 	}
@@ -96,10 +108,10 @@ class MarieInterpreter {
 		instructions = instructions.trim();
 		// console.log(instructions);
 		var lines = instructions.split("\n");
-		lines.forEach(line => {
+		lines.forEach((line,index) => {
 			line = line.trim();
 			if (!line) return;
-			var i: Instruction = { opcode: null };
+			var i: Instruction = { opcode: null, linenumber: null };
 			if (line.indexOf(",") != -1) {
 				var split = line.split(",");
 				i.label = split[0].trim();
@@ -111,6 +123,7 @@ class MarieInterpreter {
 			i.opcode = <Opcode><any>split[0];
 			if (split.length >= 2)
 				i.param = <number><any>split[1];
+			i.linenumber = index + 1;
 			ins.push(i)
 		})
 		return ins;
@@ -192,7 +205,7 @@ class MarieInterpreter {
 		if (!this.isWaitingOnInput && this.isRunning && !this.isFinishedExecuting)
 			this.step();
 		if (this.isRunning && !this.isFinishedExecuting)
-			if(this.delayInMS == 0)
+			if (this.delayInMS == 0)
 				setImmediate(this.run.bind(this));
 			else
 				setTimeout(this.run.bind(this), this.delayInMS);
@@ -234,7 +247,7 @@ class MarieInterpreter {
 				break;
 			case Opcode.OUTPUT:
 				this.outputBuffer.push(this.Accumulator);
-				if(this.onOutput) this.onOutput(String.fromCharCode(this.Accumulator));
+				if (this.onOutput) this.onOutput(String.fromCharCode(this.Accumulator));
 				break;
 			case Opcode.HALT:
 				this.isFinishedExecuting = true;
@@ -242,13 +255,13 @@ class MarieInterpreter {
 				if (this.onExecutionFinished) this.onExecutionFinished();
 				break;
 			case Opcode.SKIPCOND:
-				if (param == 0x800 && this.Accumulator > 0) {
+				if (param >> 10 == 0x0002 && this.Accumulator > 0) {
                     // console.log(this.Accumulator,"> 0")
 					this.ProgramCounter++;
-				} else if (param == 0x400 && this.Accumulator == 0) {
+				} else if (param >> 10 == 0x0001 && this.Accumulator == 0) {
                     // console.log(this.Accumulator,"== 0")
 					this.ProgramCounter++;
-				} else if (param == 0x000 && this.Accumulator < 0) {
+				} else if (param >> 10 == 0x0000 && this.Accumulator < 0) {
                     // console.log(this.Accumulator,"< 0")
 					this.ProgramCounter++;
 				}
