@@ -2,7 +2,7 @@ div.mariejs-row {
 	margin-top:15px;
 }
 div.mariejs-editor > .panel textarea {
-	min-height: 600px;
+	min-height: 800px;
 	width: 100%;
 	resize: vertical;
 	overflow-y: scroll;
