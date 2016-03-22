@@ -27,22 +27,20 @@ b, DEC 15`;
 		firstLineNumber: 0,
 		lineNumberFormatter: (ln) => "0x" + ln.toString(16),
 	}
+	lintTimeout = 0;
 
     static $inject = ["$scope", "$rootScope"];
     constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
-        $scope['mc'] = this; 
-		
+        $scope['mc'] = this;
+
 		this.$scope['codemirrorLoaded'] = this.codemirrorLoaded.bind(this);
 		this.$scope.$watch('mc.code', () => {
-			this.updateCode();
+			clearTimeout(this.lintTimeout);
+			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
     }
-	
-	lintCode() {
-		this.interpreter.lint(this.code);
-	}
 
-    updateCode() {
+    lintCode() {
         if (this.editor) {
             // this.editor.clearGutter("note-gutter");
             this.editor.getDoc().getAllMarks().forEach(mark => mark.clear())
@@ -73,16 +71,10 @@ b, DEC 15`;
         }
         catch (err) {
             this.codeErrors = (<Array<CompilerError>>err).map(err => {
-                var eString = "Error on Line " + err.lineNumber + ": " + (<CompilerError>err).errorstring;
                 err.lineNumber--;
+                var eString = "Error on Line 0x" + err.lineNumber.toString(16) + ": " + (<CompilerError>err).errorstring;
                 this.objectError = (err).object;
                 if (this.editor) {
-                    console.log("found editor object");
-                    // var icon = document.createElement("p");
-                    // icon.className = "fa fa-exclamation-circle note-gutter-text";
-                    // var lm = this.editor.setGutterMarker(this.lineError, "note-gutter", icon);
-                    // console.log(lm);
-                    // this.editor.doc.addLineClass(this.lineError, "text", "line-error");
                     var line = this.editor.getDoc().getLine(err.lineNumber);
                     var char = line.indexOf(this.objectError);
                     if (char != -1)
@@ -96,6 +88,13 @@ b, DEC 15`;
         }
 		this.safeApply();
     }
+
+	assemble() {
+		this.lintCode();
+		if (this.codeErrors.length == 0) {
+			this.interpreter.performFullCompile(this.code);
+		}
+	}
 
 	codemirrorLoaded(editor) {
 		this.editor = editor;
