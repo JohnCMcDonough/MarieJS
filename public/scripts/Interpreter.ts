@@ -23,6 +23,7 @@ interface Instruction {
 	opcode: Opcode;
 	label?: string,
 	param?: number
+	linenumber: number
 }
 
 class MarieInterpreter {
@@ -80,14 +81,14 @@ class MarieInterpreter {
 	private assemble(instructions: Array<Instruction>): Array<Instruction> {
 		for (var i = 0; i < instructions.length; i++) {
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-			if (opcode === undefined) throw new Error("Invalid Instruction " + JSON.stringify(instructions[i]));
+			if (opcode === undefined) throw new Error("Error: line " + instructions[i].linenumber + " Invalid Instruction " + JSON.stringify(instructions[i]));
 			else instructions[i].opcode = opcode;
 			
 			if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
 				if (instructions[i].param === undefined)
-					throw new Error("Missing parameter for opcode: " + Opcode[opcode]);
+					throw new Error("Error: line " + instructions[i].linenumber + " Missing parameter for opcode: " + Opcode[opcode]);
 				if (opcode != Opcode.SKIPCOND && this.symbolTable[("" + instructions[i].param).trim()] === undefined) {
-					throw new Error("Can't find symbol: " + instructions[i].param);
+					throw new Error("Error: line " + instructions[i].linenumber + " Can't find symbol: " + instructions[i].param);
 				} else {
 					if (opcode != Opcode.SKIPCOND)
 						instructions[i].param = this.symbolTable[instructions[i].param];
@@ -107,7 +108,7 @@ class MarieInterpreter {
 		instructions = instructions.trim();
 		// console.log(instructions);
 		var lines = instructions.split("\n");
-		lines.forEach(line => {
+		lines.forEach((line,index) => {
 			line = line.trim();
 			if (!line) return;
 			var i: Instruction = { opcode: null };
@@ -122,6 +123,7 @@ class MarieInterpreter {
 			i.opcode = <Opcode><any>split[0];
 			if (split.length >= 2)
 				i.param = <number><any>split[1];
+			i.linenumber = index;
 			ins.push(i)
 		})
 		return ins;
