@@ -55,6 +55,7 @@ class MarieInterpreter {
 	public onExecutionResumed: () => void;
 	public onExecutionFinished: () => void;
 	public onOutput: (char: string) => void;
+	public onTick:()=>void
 
 	constructor(instructions: string) {
 		var objects = this.convertToObjects(instructions);
@@ -192,11 +193,12 @@ class MarieInterpreter {
 
 	public step() {
 		// console.log(this.isRunning, this.isFinishedExecuting, this.isWaitingOnInput);
-		if (!this.isWaitingOnInput) {
+		if (!this.isWaitingOnInput && !this.isFinishedExecuting) {
 			this.MemoryAddressRegister = this.ProgramCounter;
 			this.InstructionRegister = this.memory[this.MemoryAddressRegister];
 			this.ProgramCounter++;
 			this.interpret();
+			if(this.onTick) this.onTick();
 		}
 	}
 
