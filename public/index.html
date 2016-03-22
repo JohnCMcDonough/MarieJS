@@ -8,6 +8,7 @@
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
 
 	<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css" />
+	<link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
 	<link rel="stylesheet" href="assets/bootstrap.lumen.min.css">
 	<link rel="stylesheet" href="index.css">
 </head>
@@ -19,7 +20,7 @@
 				<div class="col-sm-6 mariejs-editor">
 					<div class="panel panel-primary">
 						<div class="panel-heading">Editor</div>
-						<textarea ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
+						<textarea ui-codemirror ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
 						<div class="panel-footer clearfix">
 							<span class="text-danger">{{mc.codeError}}</span>
 							<button class="btn btn-sm btn-primary pull-right" ng-click="mc.updateCode()">Assemble</button>
@@ -31,7 +32,8 @@
 						<div class="panel-body">
 							<button class="btn btn-default" ng-click="mc.interpreter.run()"><i class="fa fa-play"></i></button>
 							<button class="btn btn-default" ng-click="mc.interpreter.step()"><i class="fa fa-step-forward"></i></button>
-							<input class="form-control" ng-model="mc.interpreter.delayInMS"/>
+							<input class="form-control" ng-model="mc.interpreter.delayInMS" />
+							<!-- TODO: http://seiyria.com/bootstrap-slider/ -->
 						</div>
 					</div>
 					<div class="panel panel-primary">
@@ -88,7 +90,8 @@
 	<script src="bower_components/angular/angular.js"></script>
 	<script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
 	<script src="assets/setImmediate.js"></script>
-	
+	<script type="text/javascript" src="bower_components/codemirror/lib/codemirror.js"></script>
+	<script type="text/javascript" src="bower_components/angular-ui-codemirror/ui-codemirror.min.js"></script>
 	<script src="scripts/Interpreter.js"></script>
 	<script src="index.js"></script>
 </body>

@@ -1,6 +1,6 @@
 ///<reference path="../typings/tsd.d.ts"/>
 
-var app = angular.module("mariejs", []);
+var app = angular.module("mariejs", ['ui.codemirror']);
 
 class MainController {
 	interpreter: MarieInterpreter;
@@ -11,13 +11,19 @@ HALT
 a, DEC 10
 b, DEC 15`;
 	codeError: string = "";
-	
+
 	private debounceTimer = 0;
 	public instructionsCount = 0;
-
+	
 	static $inject = ["$scope", "$rootScope"];
 	constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
 		$scope['mc'] = this;
+		$scope['editorOptions'] = {
+			lineWrapping: true,
+			lineNumbers: true,
+			readOnly: false,
+		}
+		//TODO: 
 	}
 
 	updateCode() {
@@ -33,7 +39,7 @@ b, DEC 15`;
 				if (this.debounceTimer) {
 					clearTimeout(this.debounceTimer);
 				}
-				this.debounceTimer = setTimeout(this.safeApply.bind(this),5);
+				this.debounceTimer = setTimeout(this.safeApply.bind(this), 5);
 			}
 			this.interpreter.onOutput = () => {
 				// this.safeApply();
@@ -130,7 +136,7 @@ app.directive('memoryTable', () => {
 				setTimeout(() => {
 					$scope['onChange'][address] = false;
 					$scope.$apply();
-				},50);
+				}, 50);
 			})
 		}]
 	};
