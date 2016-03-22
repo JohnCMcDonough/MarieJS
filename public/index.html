@@ -1,23 +1,94 @@
 <html>
-	<head>
-		<title>Marie JS</title>
-		
-		<meta name="apple-mobile-web-app-capable" content="yes">
-		<meta name="mobile-web-app-capable" content="yes">
-		<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
-		
-		<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
-		<link rel="stylesheet" href="assets/bootstrap.lumen.min.css">
-		<link rel="stylesheet" href="index.css">
-	</head>
+
+<head>
+	<title>Marie JS</title>
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+
+	<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css" />
+	<link rel="stylesheet" href="assets/bootstrap.lumen.min.css">
+	<link rel="stylesheet" href="index.css">
+</head>
+
+<body ng-app="mariejs">
+	<div ng-controller="MainController">
+		<div class="container-fluid">
+			<div class="row mariejs-row">
+				<div class="col-sm-6 mariejs-editor">
+					<div class="panel panel-primary">
+						<div class="panel-heading">Editor</div>
+						<textarea ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
+						<div class="panel-footer clearfix">
+							<span class="text-danger">{{mc.codeError}}</span>
+							<button class="btn btn-sm btn-primary pull-right" ng-click="mc.updateCode()">Assemble</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<div class="panel panel-primary">
+						<div class="panel-body">
+							<button class="btn btn-default" ng-click="mc.interpreter.run()"><i class="fa fa-play"></i></button>
+							<button class="btn btn-default" ng-click="mc.interpreter.step()"><i class="fa fa-step-forward"></i></button>
+						</div>
+					</div>
+					<div class="panel panel-primary">
+						<div class="panel-heading">Registers</div>
+						<div class="panel-body mariejs-registers">
+							<div class="row">
+								<div class="col-sm-4">
+									<table class="table table-condensed">
+										<tr>
+											<th>AC</th>
+											<td>0x{{mc.interpreter.Accumulator || 0 | toHex | padHex}}</td>
+										</tr>
+										<tr>
+											<th>IR</th>
+											<td>0x{{mc.interpreter.InstructionRegister || 0 | toHex | padHex}}</td>
+										</tr>
+										<tr>
+											<th>MAR</th>
+											<td>0x{{mc.interpreter.MemoryAddressRegister || 0 | toHex | padHex}}</td>
+										</tr>
+										<tr>
+											<th>MBR</th>
+											<td>0x{{mc.interpreter.MemoryBufferRegister || 0 | toHex | padHex}}</td>
+										</tr>
+										<tr>
+											<th>PC</th>
+											<td>0x{{mc.interpreter.ProgramCounter || 0 | toHex | padHex}}</td>
+										</tr>
+									</table>
+								</div>
+								<div class="col-sm-4">
+									<label>Input Buffer</label>
+									<textarea class="mariejs-registers-buffer"></textarea>
+								</div>
+								<div class="col-sm-4">
+									<label>Output Buffer</label>
+									<textarea class="mariejs-registers-buffer" readonly ng-value="mc.interpreter.outputBuffer | numberArrayToString"></textarea>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-primary">
+						<div class="panel-heading">Memory</div>
+						<div class="panel-body">
+							<div memory-table memory="mc.interpreter.memory"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+	<script src="assets/setImmediate.js"></script>
 	
-	<body ng-app="mariejs">
-		<div ui-view></div>
-		
-		<script src="bower_components/angular/angular.js"></script>
-		<script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
-		
-		<script src="scripts/Interpreter.js"></script>
-		<script src="index.js"></script>
-	</body>
+	<script src="scripts/Interpreter.js"></script>
+	<script src="index.js"></script>
+</body>
+
 </html>

@@ -45,7 +45,7 @@ class MarieInterpreter {
 	public outputBuffer = new Array();
 	public inputBuffer = new Array();
 
-	public delayInMS = 0;
+	public delayInMS = 250;
 
 	public onMemoryChangedDelegate: (address: number, value: number) => void;
 	public onNeedsInputDelegate: () => void;
@@ -81,7 +81,7 @@ class MarieInterpreter {
 				instructions[i].param = this.symbolTable[instructions[i].param];
 			}
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-			if (opcode === undefined) throw new Error("Invalid Instruction " + JSON.stringify(instructions[i]));
+			if (opcode === undefined) throw new Error(`Invalid Instruction '${instructions[i].opcode}'`);
 			else instructions[i].opcode = opcode;
 		}
 		return instructions
