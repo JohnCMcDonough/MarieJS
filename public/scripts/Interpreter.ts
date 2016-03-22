@@ -25,7 +25,7 @@ interface Instruction {
 	param?: number
 }
 
-export class MarieInterpreter {
+class MarieInterpreter {
 
 	public Accumulator = 0x0000;
 	public InstructionRegister: Opcode = 0x0000;
@@ -39,6 +39,7 @@ export class MarieInterpreter {
 	public isFinishedExecuting = false;
 	public symbolTable: { [label: string]: number };
 	public instructions: Array<Instruction>;
+	public rawInstructions: Array<Instruction>;
 	public memory: Int16Array;
 	public org = 0;
 
@@ -62,6 +63,7 @@ export class MarieInterpreter {
 		}
 		// console.log(objects);
 		this.symbolTable = this.buildSymbolTable(objects);
+		this.rawInstructions = JSON.parse(JSON.stringify(objects));
 		this.instructions = this.assemble(objects);
 		this.memory = this.fillMemory(this.instructions);
 	}
@@ -77,11 +79,10 @@ export class MarieInterpreter {
 
 	private assemble(instructions: Array<Instruction>): Array<Instruction> {
 		for (var i = 0; i < instructions.length; i++) {
-
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
 			if (opcode === undefined) throw new Error("Invalid Instruction " + JSON.stringify(instructions[i]));
 			else instructions[i].opcode = opcode;
-
+			
 			if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
 				if (instructions[i].param === undefined)
 					throw new Error("Missing parameter for opcode: " + Opcode[opcode]);
@@ -92,7 +93,7 @@ export class MarieInterpreter {
 						instructions[i].param = this.symbolTable[instructions[i].param];
 				}
 			}
-			console.log(instructions[i]);
+			// console.log(instructions[i]);
 		}
 		return instructions
 	}

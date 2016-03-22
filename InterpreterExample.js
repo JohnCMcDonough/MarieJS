@@ -13,15 +13,16 @@ function pretty(num) {
 // for (var key in interpreter.symbolTable) {
 // 	console.log(key, pretty(interpreter.symbolTable[key]))
 // }
-var i = 1;
-while (i < interpreter.memory.length + 1) {
-    process.stdout.write(pretty(interpreter.memory[i - 1]));
-    if (i % 16 == 0)
-        process.stdout.write('\n');
-    i++;
-}
+// var i = 1;
+// while(i < interpreter.memory.length + 1) {
+// 	process.stdout.write(pretty(interpreter.memory[i-1]));
+// 	if(i % 16 == 0)
+// 		process.stdout.write('\n');
+// 	i++
+// }
 // interpreter.inputBuffer = "John\0".split("");
 // console.log("AC\tIR\tMAR\tMBR\tPC");
+// console.log(interpreter.rawInstructions);
 interpreter.onNeedsInputDelegate = function () {
     process.stdout.write("> ");
 };
