@@ -47,7 +47,7 @@ class MarieInterpreter {
 	public outputBuffer = new Array();
 	public inputBuffer = new Array();
 
-	public delayInMS = 250;
+	public delayInMS = 0;
 
 	public onMemoryChangedDelegate: (address: number, value: number) => void;
 	public onNeedsInputDelegate: () => void;

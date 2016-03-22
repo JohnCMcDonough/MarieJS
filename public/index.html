@@ -31,6 +31,7 @@
 						<div class="panel-body">
 							<button class="btn btn-default" ng-click="mc.interpreter.run()"><i class="fa fa-play"></i></button>
 							<button class="btn btn-default" ng-click="mc.interpreter.step()"><i class="fa fa-step-forward"></i></button>
+							<input class="form-control" ng-model="mc.interpreter.delayInMS"/>
 						</div>
 					</div>
 					<div class="panel panel-primary">
@@ -60,6 +61,7 @@
 											<td>0x{{mc.interpreter.ProgramCounter || 0 | toHex | padHex}}</td>
 										</tr>
 									</table>
+									<label>Count:</label> {{mc.instructionsCount}}
 								</div>
 								<div class="col-sm-4">
 									<label>Input Buffer</label>
@@ -67,7 +69,7 @@
 								</div>
 								<div class="col-sm-4">
 									<label>Output Buffer</label>
-									<textarea class="mariejs-registers-buffer" readonly ng-value="mc.interpreter.outputBuffer | numberArrayToString"></textarea>
+									<textarea class="mariejs-registers-buffer" readonly>{{mc.interpreter.outputBuffer | numberArrayToString}}</textarea>
 								</div>
 							</div>
 						</div>

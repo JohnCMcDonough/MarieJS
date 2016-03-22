@@ -38,6 +38,11 @@ div.mariejs-editor > .panel textarea {
 	width: calc(100% / 17);
 }
 
+.mariejs-memoryTable td.flash {
+	background-color: yellow;
+	font-weight: bold;
+}
+
 .mariejs-memoryTable .scrollable {
 	max-height: 400px;
 	overflow-x: hidden;

@@ -1,4 +1,3 @@
-"use strict";
 /// <reference path="typings/tsd.d.ts"/>
 var fs = require("fs");
 var MarieInterpreter = require("./public/scripts/Interpreter");
