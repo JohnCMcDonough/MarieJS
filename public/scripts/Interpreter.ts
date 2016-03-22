@@ -40,7 +40,7 @@ class MarieInterpreter {
 	public ProgramCounter = 0x0000;
 	public Input = 0x0000;
 
-	public isRunning = true;
+	public isRunning = false;
 	public isWaitingOnInput = false;
 	public isFinishedExecuting = false;
 	public symbolTable: { [label: string]: number };
@@ -194,6 +194,7 @@ class MarieInterpreter {
 	public resumeExecution() {
 		this.isRunning = true;
 		if (this.onExecutionResumed) this.onExecutionResumed();
+		this.run();
 	}
 
 	public step() {

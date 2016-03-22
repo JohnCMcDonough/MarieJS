@@ -13,6 +13,7 @@ b, DEC 15`;
     codeError: string = "";
     lineError: number = -1;
 	objectError: string = "";
+	viewType: "HEX" | "ASCII" | "DEC" = "HEX";
 
     private debounceTimer = 0;
     public instructionsCount = 0;
@@ -68,7 +69,7 @@ b, DEC 15`;
 
 		}
 		catch (err) {
-			this.codeError = "Error on Line " + err.lineNumber + ": "+ (<CompilerError>err).errorstring;
+			this.codeError = "Error on Line " + err.lineNumber + ": " + (<CompilerError>err).errorstring;
 			this.lineError = (<CompilerError>err).lineNumber - 1
 			this.objectError = (<CompilerError>err).object;
 			console.log("had error", this.editor, this.lineError, this.codeError);
@@ -124,29 +125,34 @@ app.directive('memoryTable', () => {
 	return {
 		restrict: 'A',
 		scope: {
-			memory: '='
+			memory: '=',
+			viewtype: "=",
 		},
 		template: `
-<div class="mariejs-memoryTable">
-	<table class="header">
-		<thead>
-			<tr>
-				<th></th>
-				<th ng-repeat="col in cols">+{{col | toHex}}</th>
-			</tr>
-		</thead>
-	</table>
-	<div class="scrollable">
-		<table class="table-striped">
-			<tbody>
-				<tr ng-repeat="row in rows">
-					<th>{{row | toHex | padHex:3}}</th>
-					<td ng-repeat="col in cols" ng-class="{flash:onChange[row+col]}">{{memory[row + col] | toHex | padHex:4}}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</div>`,
+		<div class="mariejs-memoryTable">
+			<table class="header">
+				<thead>
+					<tr>
+						<th></th>
+						<th ng-repeat="col in cols">+{{col | toHex}}</th>
+					</tr>
+				</thead>
+			</table>
+			<div class="scrollable">
+				<table class="table-striped">
+					<tbody>
+						<tr ng-repeat="row in rows">
+							<th>{{row | toHex | padHex:3}}</th>
+							<td ng-if="viewtype == 'HEX'" ng-repeat="col in cols" ng-class="{flash:onChange[row+col]}">
+								<span ng-if="viewtype == 'HEX'">{{memory[row + col] | toHex | padHex:4}}</span>
+								<span ng-if="viewtype == 'ASCII'">{{memory[row + col] | toASCII}}</span>
+								<span ng-if="viewtype == 'DEC'">{{memory[row + col]}}</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>`,
 		controller: ["$scope", "$rootScope", ($scope: angular.IScope, $rootScope: angular.IScope) => {
 			$scope['onChange'] = {};
 			function fillMemory() {
@@ -177,6 +183,9 @@ app.directive('memoryTable', () => {
 	};
 });
 
+app.filter('toASCII', () => (x) => {
+    return String.fromCharCode(x);
+});
 app.filter('toHex', () => (x) => {
     if (x < 0) {
         x = 0xFFFFFFFF + x + 1;

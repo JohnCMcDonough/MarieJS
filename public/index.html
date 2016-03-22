@@ -20,7 +20,8 @@
 				<div class="col-sm-6 mariejs-editor">
 					<div class="panel panel-primary">
 						<div class="panel-heading">Editor</div>
-						<textarea ui-codemirror="{ onLoad : codemirrorLoaded }" ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false" ng-model="mc.code"></textarea>
+						<textarea ui-codemirror="{ onLoad : codemirrorLoaded }" ui-codemirror-opts="editorOptions" ng-allow-tab spellcheck="false"
+						ng-model="mc.code"></textarea>
 						<div class="panel-footer clearfix">
 							<span class="text-danger">{{mc.codeError}}</span>
 							<button class="btn btn-sm btn-primary pull-right" ng-click="mc.updateCode()">Assemble</button>
@@ -30,8 +31,9 @@
 				<div class="col-sm-6">
 					<div class="panel panel-primary">
 						<div class="panel-body">
-							<button class="btn btn-default" ng-click="mc.interpreter.run()"><i class="fa fa-play"></i></button>
-							<button class="btn btn-default" ng-click="mc.interpreter.step()"><i class="fa fa-step-forward"></i></button>
+							<button class="btn btn-default" ng-click="mc.interpreter.resumeExecution()" ng-disabled="mc.interpreter.isRunning || mc.interpreter.isFinishedExecuting"><i class="fa fa-play"></i></button>
+							<button class="btn btn-default" ng-click="mc.interpreter.step()" 			ng-disabled="mc.interpreter.isFinishedExecuting"><i class="fa fa-step-forward"></i></button>
+							<button class="btn btn-default" ng-click="mc.interpreter.pauseExecution()" 	ng-disabled="!mc.interpreter.isRunning"><i class="fa fa-pause"></i></button>
 							<input class="form-control" ng-model="mc.interpreter.delayInMS" />
 							<!-- TODO: http://seiyria.com/bootstrap-slider/ -->
 						</div>
@@ -78,9 +80,15 @@
 						</div>
 					</div>
 					<div class="panel panel-primary">
-						<div class="panel-heading">Memory</div>
+						<div class="panel-heading">Memory
+							<div class="btn-group pull-right" role="group" aria-label="...">
+								<button type="button" class="btn btn-xs btn-default" ng-click="mc.viewType = 'HEX'">HEX</button>
+								<button type="button" class="btn btn-xs btn-default" ng-click="mc.viewType = 'DEC'">DEC</button>
+								<button type="button" class="btn btn-xs btn-default" ng-click="mc.viewType = 'ASCII'">ASCII</button>
+							</div>
+						</div>
 						<div class="panel-body">
-							<div memory-table memory="mc.interpreter.memory"></div>
+							<div memory-table viewtype="mc.viewType" memory="mc.interpreter.memory"></div>
 						</div>
 					</div>
 				</div>
