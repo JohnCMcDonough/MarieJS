@@ -25,7 +25,7 @@ interface Instruction {
 	param?: number
 }
 
-class MarieInterpreter {
+export class MarieInterpreter {
 
 	public Accumulator = 0x0000;
 	public InstructionRegister: Opcode = 0x0000;
@@ -52,7 +52,7 @@ class MarieInterpreter {
 	public onExecutionPaused: () => void;
 	public onExecutionResumed: () => void;
 	public onExecutionFinished: () => void;
-	public onOutput:(char:string)=>void;
+	public onOutput: (char: string) => void;
 
 	constructor(instructions: string) {
 		var objects = this.convertToObjects(instructions);
@@ -77,12 +77,22 @@ class MarieInterpreter {
 
 	private assemble(instructions: Array<Instruction>): Array<Instruction> {
 		for (var i = 0; i < instructions.length; i++) {
-			if (this.symbolTable[instructions[i].param] != undefined) {
-				instructions[i].param = this.symbolTable[instructions[i].param];
-			}
+
 			var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
 			if (opcode === undefined) throw new Error("Invalid Instruction " + JSON.stringify(instructions[i]));
 			else instructions[i].opcode = opcode;
+
+			if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
+				if (instructions[i].param === undefined)
+					throw new Error("Missing parameter for opcode: " + Opcode[opcode]);
+				if (opcode != Opcode.SKIPCOND && this.symbolTable[("" + instructions[i].param).trim()] === undefined) {
+					throw new Error("Can't find symbol: " + instructions[i].param);
+				} else {
+					if (opcode != Opcode.SKIPCOND)
+						instructions[i].param = this.symbolTable[instructions[i].param];
+				}
+			}
+			console.log(instructions[i]);
 		}
 		return instructions
 	}
@@ -192,7 +202,7 @@ class MarieInterpreter {
 		if (!this.isWaitingOnInput && this.isRunning && !this.isFinishedExecuting)
 			this.step();
 		if (this.isRunning && !this.isFinishedExecuting)
-			if(this.delayInMS == 0)
+			if (this.delayInMS == 0)
 				setImmediate(this.run.bind(this));
 			else
 				setTimeout(this.run.bind(this), this.delayInMS);
@@ -234,7 +244,7 @@ class MarieInterpreter {
 				break;
 			case Opcode.OUTPUT:
 				this.outputBuffer.push(this.Accumulator);
-				if(this.onOutput) this.onOutput(String.fromCharCode(this.Accumulator));
+				if (this.onOutput) this.onOutput(String.fromCharCode(this.Accumulator));
 				break;
 			case Opcode.HALT:
 				this.isFinishedExecuting = true;
@@ -242,13 +252,13 @@ class MarieInterpreter {
 				if (this.onExecutionFinished) this.onExecutionFinished();
 				break;
 			case Opcode.SKIPCOND:
-				if (param == 0x800 && this.Accumulator > 0) {
+				if (param >> 10 == 0x0002 && this.Accumulator > 0) {
                     // console.log(this.Accumulator,"> 0")
 					this.ProgramCounter++;
-				} else if (param == 0x400 && this.Accumulator == 0) {
+				} else if (param >> 10 == 0x0001 && this.Accumulator == 0) {
                     // console.log(this.Accumulator,"== 0")
 					this.ProgramCounter++;
-				} else if (param == 0x000 && this.Accumulator < 0) {
+				} else if (param >> 10 == 0x0000 && this.Accumulator < 0) {
                     // console.log(this.Accumulator,"< 0")
 					this.ProgramCounter++;
 				}
