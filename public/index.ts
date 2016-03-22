@@ -28,6 +28,7 @@ b, DEC 15`;
 		lineNumberFormatter: (ln) => "0x" + ln.toString(16),
 	}
 	lintTimeout = 0;
+	cpuFreq = 500;
 
     static $inject = ["$scope", "$rootScope"];
     constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
@@ -38,6 +39,11 @@ b, DEC 15`;
 			clearTimeout(this.lintTimeout);
 			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
+		
+		this.$scope.$watch('mc.cpuFreq', () => {
+			this.interpreter.delayInMS = 1000/this.cpuFreq;
+		})
+		this.interpreter.delayInMS = 1000/this.cpuFreq;
     }
     highlightedLine:CodeMirror.LineHandle;
     lintCode() {
@@ -99,6 +105,15 @@ b, DEC 15`;
             this.editor.removeLineClass(this.highlightedLine,"background","active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
+		}
+	}
+	
+	playPause() {
+		if (this.interpreter.isRunning) {
+			this.interpreter.pauseExecution();
+		}
+		else {
+			this.interpreter.resumeExecution();
 		}
 	}
 
