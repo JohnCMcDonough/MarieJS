@@ -41,10 +41,10 @@ b, DEC 15`;
 			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
 		var freqToPeriod = () => {
-			const EXP_GAIN = 1/10;
-			this.interpreter.delayInMS = 1000*Math.pow(Math.E,-.005*this.cpuFreq); 
+			const EXP_GAIN = 1 / 10;
+			this.interpreter.delayInMS = 1000 * Math.pow(Math.E, -.005 * this.cpuFreq);
 		}
-		
+
 		this.$scope.$watch('mc.cpuFreq', freqToPeriod)
 		freqToPeriod();
     }
@@ -61,12 +61,14 @@ b, DEC 15`;
         }
         try {
 			this.interpreter.lint(this.code);
-			this.interpreter.onFinishedCompile = ()=>{
-				this.editor.setOption("readOnly",false)
+			this.interpreter.onFinishedCompile = () => {
+				this.editor.setOption("readOnly", false)
+				this.$rootScope.$emit("setActiveMemory", -1, -1);
+				this.$rootScope.$emit("memoryUpdate", -1);
 				this.editor.refresh();
 			}
             this.interpreter.onTick = () => {
-				this.editor.setOption("readOnly","nocursor")
+				this.editor.setOption("readOnly", "nocursor")
 				this.editor.refresh();
                 this.instructionsCount++;
                 if (this.debounceTimer) {
@@ -77,7 +79,9 @@ b, DEC 15`;
                 if (this.highlightedLine)
                     this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
                 this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
+				this.editor.scrollIntoView({line:line,ch:0},100);
 				if (this.breakpoints[line]) this.interpreter.pauseExecution();
+				this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -116,7 +120,6 @@ b, DEC 15`;
             this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
-			this.clean = true;
 		}
 	}
 
@@ -217,7 +220,7 @@ app.directive('memoryTable', () => {
 					<tbody>
 						<tr ng-repeat="row in rows">
 							<th>{{row | toHex | padHex:3}}</th>
-							<td ng-repeat="col in cols" ng-class="{flash:onChange[row+col]}">
+							<td ng-repeat="col in cols" ng-class="{flash:WRITE == row+col,green:MAR == col + row,red:PC == col + row}">
 								<span ng-show="viewtype == 'HEX'">{{memory[row + col] | toHex | padHex:4}}</span>
 								<span ng-show="viewtype == 'ASCII'">{{memory[row + col] | toASCII}}</span>
 								<span ng-show="viewtype == 'DEC'">{{memory[row + col]}}</span>
@@ -228,7 +231,9 @@ app.directive('memoryTable', () => {
 			</div>
 		</div>`,
         controller: ["$scope", "$rootScope", ($scope: angular.IScope, $rootScope: angular.IScope) => {
-            $scope['onChange'] = {};
+            $scope['WRITE'] = -1;
+			$scope['MAR'] = -1;
+			$scope['PC'] = -1;
             function fillMemory() {
                 if (!$scope['memory']) {
                     $scope['memory'] = new Int16Array(2048);
@@ -247,11 +252,11 @@ app.directive('memoryTable', () => {
             fillMemory();
 
             $rootScope.$on('memoryUpdate', (e, address, newValue) => {
-                $scope['onChange'][address] = true;
-                setTimeout(() => {
-                    $scope['onChange'][address] = false;
-                    $scope.$apply();
-                }, 50);
+                $scope['WRITE'] = address;
+            })
+			$rootScope.$on('setActiveMemory', (e, MAR, PC) => {
+                $scope['MAR'] = MAR;
+				$scope['PC'] = PC;
             })
         }]
     };
@@ -272,3 +277,5 @@ app.filter('padHex', () => (x: string, padSize = 4) => {
     return r + x;
 });
 app.filter('numberArrayToString', () => (x: Array<number>) => x && x.map((v) => String.fromCharCode(v)).join(""));
+app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => x && x.map((v) => "0x" + $filter("toHex")(v) ).join()]);
+app.filter('numberArrayToDecimal', () => (x: Array<number>) => x && x.join());
