@@ -299,5 +299,7 @@ app.filter('padHex', () => (x: string, padSize = 4) => {
     return r + x;
 });
 app.filter('numberArrayToString', () => (x: Array<number>) => x && x.map((v) => String.fromCharCode(v)).join(""));
-app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => x && x.map((v) => "0x" + $filter("toHex")(v)).join()]);
-app.filter('numberArrayToDecimal', () => (x: Array<number>) => x && x.join());
+app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => { x && x.map((v) => "0x" + $filter("toHex")(v)).join() }]);
+app.filter('numberArrayToDecimal', () => (x: Array<number>) => x && x.map(dec=>{
+	return dec >> 15 ? 0xFFFFFFFFFFFF0000 | (dec & 0xFFFF) : dec
+}).join());
