@@ -116,7 +116,6 @@ b, DEC 15`;
             this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
-			this.clean = true;
 		}
 	}
 
@@ -142,10 +141,10 @@ b, DEC 15`;
 
 	private breakpoints: Array<boolean> = [];
 	codeEditorGutterClick(instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) {
-		// console.log("GUTTER CLICK!", this.breakpoints);
+		if (gutter == "CodeMirror-linenumbers") return;
 		if (!this.breakpoints[line]) {
 			var icon = document.createElement("i");
-			icon.innerHTML = "-";
+			icon.innerHTML = '<div style="padding: 2px 0 0 4px"><i class="fa fa-circle text-danger"></i></div>';
 			instance.setGutterMarker(line, gutter, icon);
 			this.breakpoints[line] = true;
 		} else {
