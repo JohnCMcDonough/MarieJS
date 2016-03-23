@@ -19,72 +19,85 @@ b, DEC 15`;
     public instructionsCount = 0;
 
     private editor: CodeMirror.Editor;
-	private defaultEditorOptions: CodeMirror.EditorConfiguration = {
-		lineWrapping: true,
-		lineNumbers: true,
-		readOnly: false,
-		gutters: ['breakpoint-gutter'],
-		firstLineNumber: 0,
-		lineNumberFormatter: (ln) => "0x" + ln.toString(16),
+    private defaultEditorOptions: CodeMirror.EditorConfiguration = {
+        lineWrapping: true,
+        lineNumbers: true,
+        readOnly: false,
+        gutters: ['breakpoint-gutter'],
+        firstLineNumber: 0,
+        lineNumberFormatter: (ln) => "0x" + ln.toString(16),
 
-	}
-	lintTimeout = 0;
-	cpuFreq = 500;
+    }
+    lintTimeout = 0;
+    cpuFreq = 500;
 
     static $inject = ["$scope", "$rootScope"];
     constructor(private $scope: angular.IScope, private $rootScope: angular.IScope) {
         $scope['mc'] = this;
 
-		this.$scope['codemirrorLoaded'] = this.codemirrorLoaded.bind(this);
-		this.$scope.$watch('mc.code', () => {
-			clearTimeout(this.lintTimeout);
-			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
-		})
-		var freqToPeriod = () => {
-			const EXP_GAIN = 1 / 10;
-			this.interpreter.delayInMS = 1000 * Math.pow(Math.E, -.005 * this.cpuFreq);
-		}
+        this.$scope['codemirrorLoaded'] = this.codemirrorLoaded.bind(this);
+        this.$scope.$watch('mc.code', () => {
+            clearTimeout(this.lintTimeout);
+            this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
+        })
+        var freqToPeriod = () => {
+            const EXP_GAIN = 1 / 10;
+            this.interpreter.delayInMS = 1000 * Math.pow(Math.E, -.005 * this.cpuFreq);
+        }
 
-		this.$scope.$watch('mc.cpuFreq', freqToPeriod)
-		freqToPeriod();
+        this.$scope.$watch('mc.cpuFreq', freqToPeriod)
+        freqToPeriod();
     }
+
+    markComments() {
+        this.editor.getDoc().eachLine(line => {
+            var commentBeginsAt = line.text.indexOf("/");
+            var lineNum = this.editor.getDoc().getLineNumber(line);
+            if (commentBeginsAt == -1) return;
+
+            this.editor.getDoc().markText({ line: lineNum, ch: commentBeginsAt }, { line: lineNum, ch: line.text.length }, { className: "comment" });
+        })
+    }
+
+
     highlightedLine: CodeMirror.LineHandle;
     lintCode() {
         if (this.editor) {
             // this.editor.clearGutter("note-gutter");
             this.editor.getDoc().getAllMarks().forEach(mark => mark.clear())
         }
-		this.codeErrors = [];
+        this.codeErrors = [];
         this.instructionsCount = 0;
         if (this.interpreter && this.interpreter.pauseExecution) {
             this.interpreter.pauseExecution()
         }
         try {
-			this.interpreter.lint(this.code);
-			this.interpreter.onFinishedCompile = () => {
-				this.editor.setOption("readOnly", false)
-				this.$rootScope.$emit("setActiveMemory", -1, -1);
-				this.$rootScope.$emit("memoryUpdate", -1);
-				this.editor.refresh();
-			}
+            this.markComments();
+            this.interpreter.lint(this.code);
+            this.interpreter.onFinishedCompile = () => {
+                this.editor.setOption("readOnly", false)
+                this.$rootScope.$emit("setActiveMemory", -1, -1);
+                this.$rootScope.$emit("memoryUpdate", -1);
+                this.editor.refresh();
+            }
             this.interpreter.onTick = () => {
                 this.instructionsCount++;
                 if (!this.debounceTimer) {
-                	this.debounceTimer = +setTimeout(() => {
-						this.safeApply()
-						
-						var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
-						if (this.highlightedLine)
-							this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
-						this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
-						this.editor.scrollIntoView({line:line,ch:0},100);
-						this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
-						
-						this.debounceTimer = null;
-					}, 50);
+                    this.debounceTimer = +setTimeout(() => {
+                        this.safeApply()
+
+                        var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
+                        if (this.highlightedLine)
+                            this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
+                        this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
+                        this.editor.scrollIntoView({ line: line, ch: 0 }, 100);
+                        this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
+
+                        this.debounceTimer = null;
+                    }, 50);
                 }
                 var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
-				if (this.breakpoints[line]) this.interpreter.pauseExecution();
+                if (this.breakpoints[line]) this.interpreter.pauseExecution();
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -94,96 +107,100 @@ b, DEC 15`;
             }
             this.interpreter.onExecutionFinished = () => {
                 console.info(this.interpreter.outputBuffer);
-				this.defaultEditorOptions.readOnly = false;
+                this.defaultEditorOptions.readOnly = false;
             }
         }
         catch (err) {
-            this.codeErrors = (<Array<CompilerError>>err).map(err => {
-                err.lineNumber--;
-                var eString = "Error on Line 0x" + err.lineNumber.toString(16) + ": " + (<CompilerError>err).errorstring;
-                this.objectError = (err).object;
-                if (this.editor) {
-                    var line = this.editor.getDoc().getLine(err.lineNumber);
-                    var char = line.indexOf(this.objectError);
-                    if (char != -1)
-                        this.editor.getDoc().markText({ line: err.lineNumber, ch: char }, { line: err.lineNumber, ch: char + this.objectError.length }, { className: "line-error" });
-                    else {
-                        this.editor.getDoc().markText({ line: err.lineNumber, ch: 0 }, { line: err.lineNumber, ch: line.length }, { className: "line-error" });
+            if (err.map)
+                this.codeErrors = (<Array<CompilerError>>err).map(err => {
+                    err.lineNumber--;
+                    var eString = "Error on Line 0x" + err.lineNumber.toString(16) + ": " + (<CompilerError>err).errorstring;
+                    this.objectError = (err).object;
+                    if (this.editor) {
+                        var line = this.editor.getDoc().getLine(err.lineNumber);
+                        var char = line.indexOf(this.objectError);
+                        if (char != -1)
+                            this.editor.getDoc().markText({ line: err.lineNumber, ch: char }, { line: err.lineNumber, ch: char + this.objectError.length }, { className: "line-error" });
+                        else {
+                            this.editor.getDoc().markText({ line: err.lineNumber, ch: 0 }, { line: err.lineNumber, ch: line.length }, { className: "line-error" });
+                        }
                     }
-                }
-				return eString;
-            });
+                    return eString;
+                });
+            else
+                console.log(err);
         }
-		this.safeApply();
+        this.safeApply();
     }
 
-	assemble() {
-		this.lintCode();
+    assemble() {
+        this.lintCode();
         if (this.editor && this.highlightedLine)
             this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
-		if (this.codeErrors.length == 0) {
-			this.interpreter.performFullCompile(this.code);
-		}
-	}
+        if (this.codeErrors.length == 0) {
+            this.interpreter.performFullCompile(this.code);
+        }
+    }
 
-	playPause() {
-		if (this.interpreter.isRunning) {
-			this.interpreter.pauseExecution();
-		}
-		else {
-			if (this.interpreter.isFinishedExecuting) {
-				this.assemble();
-			}
-			else {
-				this.interpreter.resumeExecution();
-				this.editor.setOption("readOnly", "nocursor")
-				this.editor.refresh();
-			}
-		}
-	}
+    playPause() {
+        if (this.interpreter.isRunning) {
+            this.interpreter.pauseExecution();
+        }
+        else {
+            if (this.interpreter.isFinishedExecuting) {
+                this.assemble();
+            }
+            else {
+                this.interpreter.resumeExecution();
+                this.editor.setOption("readOnly", "nocursor")
+                this.editor.refresh();
+            }
+        }
+    }
 
-	codemirrorLoaded(editor: CodeMirror.Editor) {
-		this.editor = editor;
-		this.editor.on("gutterClick", this.codeEditorGutterClick.bind(this));
-		this.editor.on("change", this.rebuildBreakPoints.bind(this));
-	}
+    codemirrorLoaded(editor: CodeMirror.Editor) {
+        this.editor = editor;
+        this.editor.on("gutterClick", this.codeEditorGutterClick.bind(this));
+        this.editor.on("change", this.rebuildBreakPoints.bind(this));
+        this.editor.on("change", this.markComments.bind(this));
+    }
 
-	private breakpoints: Array<boolean> = [];
-	codeEditorGutterClick(instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) {
-		if (gutter == "CodeMirror-linenumbers") return;
-		if (!this.breakpoints[line]) {
-			var icon = document.createElement("i");
-			icon.innerHTML = '<div style="padding: 2px 0 0 4px"><i class="fa fa-circle text-danger"></i></div>';
-			instance.setGutterMarker(line, gutter, icon);
-			this.breakpoints[line] = true;
-		} else {
-			instance.setGutterMarker(line, gutter, undefined);
-			this.breakpoints[line] = false;
-		}
-	}
+    private breakpoints: Array<boolean> = [];
+    codeEditorGutterClick(instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) {
+        if (gutter == "CodeMirror-linenumbers") return;
+        if (!this.breakpoints[line]) {
+            var icon = document.createElement("i");
+            icon.innerHTML = '<div style="padding: 2px 0 0 4px"><i class="fa fa-circle text-danger"></i></div>';
+            instance.setGutterMarker(line, gutter, icon);
+            this.breakpoints[line] = true;
+        } else {
+            instance.setGutterMarker(line, gutter, undefined);
+            this.breakpoints[line] = false;
+        }
+    }
 
-	rebuildBreakPoints() {
-		this.breakpoints = [];
-		var lineNum = 0;
-		this.editor.getDoc().eachLine(l => {
-			if (this.editor.lineInfo(l)['gutterMarkers'] && this.editor.lineInfo(l)['gutterMarkers']['breakpoint-gutter']) {
-				this.breakpoints[lineNum] = true;
-			}
-			// console.log(lineNum, l, this.editor.lineInfo(l), this.breakpoints[lineNum])
-			lineNum++;
-		})
-	}
+    rebuildBreakPoints() {
+        this.breakpoints = [];
+        var lineNum = 0;
+        this.editor.getDoc().eachLine(l => {
+            if (this.editor.lineInfo(l)['gutterMarkers'] && this.editor.lineInfo(l)['gutterMarkers']['breakpoint-gutter']) {
+                this.breakpoints[lineNum] = true;
+            }
+            // console.log(lineNum, l, this.editor.lineInfo(l), this.breakpoints[lineNum])
+            lineNum++;
+        })
+    }
 
-	safeApply(fn?: () => void) {
-		var phase = this.$scope.$root.$$phase;
-		if (phase == '$apply' || phase == '$digest') {
-			if (fn && (typeof (fn) === 'function')) {
-				fn();
-			}
-		} else {
-			this.$scope.$apply(fn);
-		}
-	};
+    safeApply(fn?: () => void) {
+        var phase = this.$scope.$root.$$phase;
+        if (phase == '$apply' || phase == '$digest') {
+            if (fn && (typeof (fn) === 'function')) {
+                fn();
+            }
+        } else {
+            this.$scope.$apply(fn);
+        }
+    };
 }
 app.controller("MainController", MainController);
 
@@ -237,8 +254,8 @@ app.directive('memoryTable', () => {
 		</div>`,
         controller: ["$scope", "$rootScope", ($scope: angular.IScope, $rootScope: angular.IScope) => {
             $scope['WRITE'] = -1;
-			$scope['MAR'] = -1;
-			$scope['PC'] = -1;
+            $scope['MAR'] = -1;
+            $scope['PC'] = -1;
             function fillMemory() {
                 if (!$scope['memory']) {
                     $scope['memory'] = new Int16Array(2048);
@@ -259,9 +276,9 @@ app.directive('memoryTable', () => {
             $rootScope.$on('memoryUpdate', (e, address, newValue) => {
                 $scope['WRITE'] = address;
             })
-			$rootScope.$on('setActiveMemory', (e, MAR, PC) => {
+            $rootScope.$on('setActiveMemory', (e, MAR, PC) => {
                 $scope['MAR'] = MAR;
-				$scope['PC'] = PC;
+                $scope['PC'] = PC;
             })
         }]
     };
@@ -282,5 +299,5 @@ app.filter('padHex', () => (x: string, padSize = 4) => {
     return r + x;
 });
 app.filter('numberArrayToString', () => (x: Array<number>) => x && x.map((v) => String.fromCharCode(v)).join(""));
-app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => x && x.map((v) => "0x" + $filter("toHex")(v) ).join()]);
+app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => x && x.map((v) => "0x" + $filter("toHex")(v)).join()]);
 app.filter('numberArrayToDecimal', () => (x: Array<number>) => x && x.join());

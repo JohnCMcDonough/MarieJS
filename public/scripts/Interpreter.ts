@@ -61,7 +61,7 @@ class MarieInterpreter {
     public onExecutionFinished: () => void;
     public onOutput: (char: string) => void;
     public onTick: () => void;
-	public onFinishedCompile: ()=>void;
+    public onFinishedCompile: () => void;
 
 
     public IRToLine: { [IR: number]: number } = [];
@@ -107,14 +107,14 @@ class MarieInterpreter {
         this.rawInstructions = objects;
         this.instructions = this.assemble(objects, this.symbolTable);
         this.memory = this.fillMemory(this.instructions);
-		if(this.onFinishedCompile) this.onFinishedCompile();
+        if (this.onFinishedCompile) this.onFinishedCompile();
     }
 
     public buildSymbolTable(instructions: Array<Instruction>): { [label: string]: number } {
         var map: { [label: string]: number } = {};
         for (var i = 0; i < instructions.length; i++) {
             if (instructions[i].label)
-                map[instructions[i].label] = i;
+                map[instructions[i].label] = i + this.org;
         }
         return map;
     }
@@ -126,8 +126,8 @@ class MarieInterpreter {
             var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
             if (opcode === undefined) { errors.push(new CompilerError(instructions[i].linenumber, "Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode)); continue; }
             else instructions[i].opcode = opcode;
-			if (instructions[i].label && /^[0-9]/g.test(instructions[i].label))
-				errors.push(new CompilerError(instructions[i].linenumber, "Label can not begin with a number", instructions[i].label));
+            if (instructions[i].label && /^[0-9]/g.test(instructions[i].label))
+                errors.push(new CompilerError(instructions[i].linenumber, "Label can not begin with a number", instructions[i].label));
             if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
                 if (instructions[i].param === undefined) {
                     errors.push(new CompilerError(instructions[i].linenumber, "Missing parameter for opcode: " + Opcode[opcode], ("" + instructions[i].opcode)));
@@ -143,15 +143,17 @@ class MarieInterpreter {
             }
             // console.log(instructions[i]);
         }
-        if (errors.length > 0) throw errors;
+        if (errors && errors.length > 0) throw errors;
         return instructions
     }
 
     public tokenize(instructions: string): Array<Instruction> {
         var ins: Array<Instruction> = [];
+        this.org = 0;
         instructions = instructions.replace("\r\n", "\n");
         instructions = instructions.replace("\r", "\n");
         instructions = instructions.replace(/\t+/g, " ");
+        instructions = instructions.replace(/(\/.*)/g, "")
         var lines = instructions.split("\n");
         lines.forEach((line, index) => {
             line = line.trim();
@@ -173,8 +175,8 @@ class MarieInterpreter {
             ins.push(i)
         })
         if (ins[0] && (<string><any>ins[0].opcode).toUpperCase() == "ORG") {
-            this.instructions.splice(0, 1);
             this.org = Number(ins[0].param);
+            ins.splice(0, 1);
             this.ProgramCounter = this.org;
         }
         return ins;
@@ -183,18 +185,19 @@ class MarieInterpreter {
     public fillMemory(instructions: Array<Instruction>): Int16Array {
         var memory = new Int16Array(1 << 11);
         for (var i = this.org; i < instructions.length + this.org; i++) {
-            if (instructions[i].opcode == Opcode.DEC) {
-                memory[i] = parseInt("" + instructions[i].param, 10) & 0xFFFF;
-            } else if (instructions[i].opcode == Opcode.HEX) {
-                memory[i] = parseInt("" + instructions[i].param, 16) & 0xFFFF;
-            } else if (instructions[i].opcode == Opcode.SKIPCOND) {
-                memory[i] = (instructions[i].opcode & 0xF) << 12;
-                memory[i] |= parseInt("" + instructions[i].param, 16) & 0x0FFF;
+            var index = i - this.org
+            if (instructions[index].opcode == Opcode.DEC) {
+                memory[i] = parseInt("" + instructions[index].param, 10) & 0xFFFF;
+            } else if (instructions[index].opcode == Opcode.HEX) {
+                memory[i] = parseInt("" + instructions[index].param, 16) & 0xFFFF;
+            } else if (instructions[index].opcode == Opcode.SKIPCOND) {
+                memory[i] = (instructions[index].opcode & 0xF) << 12;
+                memory[i] |= parseInt("" + instructions[index].param, 16) & 0x0FFF;
             } else {
-                memory[i] = (instructions[i].opcode & 0xF) << 12;
-                memory[i] |= instructions[i].param & 0x0FFF;
+                memory[i] = (instructions[index].opcode & 0xF) << 12;
+                memory[i] |= instructions[index].param & 0x0FFF;
             }
-            this.IRToLine[memory[i]] = this.instructions[i].linenumber;
+            this.IRToLine[memory[i]] = this.instructions[index].linenumber;
         }
         return memory;
     }
