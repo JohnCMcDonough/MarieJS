@@ -68,20 +68,23 @@ b, DEC 15`;
 				this.editor.refresh();
 			}
             this.interpreter.onTick = () => {
-				this.editor.setOption("readOnly", "nocursor")
-				this.editor.refresh();
                 this.instructionsCount++;
-                if (this.debounceTimer) {
-                    clearTimeout(this.debounceTimer);
+                if (!this.debounceTimer) {
+                	this.debounceTimer = +setTimeout(() => {
+						this.safeApply()
+						
+						var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
+						if (this.highlightedLine)
+							this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
+						this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
+						this.editor.scrollIntoView({line:line,ch:0},100);
+						this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
+						
+						this.debounceTimer = null;
+					}, 50);
                 }
-                this.debounceTimer = setTimeout(this.safeApply.bind(this), 5);
                 var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
-                if (this.highlightedLine)
-                    this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
-                this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
-				this.editor.scrollIntoView({line:line,ch:0},100);
 				if (this.breakpoints[line]) this.interpreter.pauseExecution();
-				this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -133,6 +136,8 @@ b, DEC 15`;
 			}
 			else {
 				this.interpreter.resumeExecution();
+				this.editor.setOption("readOnly", "nocursor")
+				this.editor.refresh();
 			}
 		}
 	}
