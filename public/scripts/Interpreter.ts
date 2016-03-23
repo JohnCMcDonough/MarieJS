@@ -122,16 +122,17 @@ class MarieInterpreter {
         var errors: Array<CompilerError> = [];
         for (var i = 0; i < instructions.length; i++) {
             var opcode = Opcode[("" + instructions[i].opcode).toUpperCase()]//this.opcodeStringToOpcode(<any>instructions[i].opcode);
-            if (opcode === undefined) { errors.push(new CompilerError(instructions[i].linenumber, " Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode)); continue; }
+            if (opcode === undefined) { errors.push(new CompilerError(instructions[i].linenumber, "Invalid Instruction " + instructions[i].opcode, "" + instructions[i].opcode)); continue; }
             else instructions[i].opcode = opcode;
-
+			if (instructions[i].label && /^[0-9]/g.test(instructions[i].label))
+				errors.push(new CompilerError(instructions[i].linenumber, "Label can not begin with a number", instructions[i].label));
             if (opcode != Opcode.CLEAR && opcode != Opcode.OUTPUT && opcode != Opcode.INPUT && opcode != Opcode.HALT && opcode != Opcode.DEC && opcode != Opcode.HEX) {
                 if (instructions[i].param === undefined) {
-                    errors.push(new CompilerError(instructions[i].linenumber, " Missing parameter for opcode: " + Opcode[opcode], ("" + instructions[i].opcode)));
+                    errors.push(new CompilerError(instructions[i].linenumber, "Missing parameter for opcode: " + Opcode[opcode], ("" + instructions[i].opcode)));
                     continue;
                 }
                 if (opcode != Opcode.SKIPCOND && symbolTable[("" + instructions[i].param).trim()] === undefined) {
-                    errors.push(new CompilerError(instructions[i].linenumber, " Can't find symbol: " + instructions[i].param, ("" + instructions[i].param)));
+                    errors.push(new CompilerError(instructions[i].linenumber, "Can't find symbol: " + instructions[i].param, ("" + instructions[i].param)));
                     continue;
                 } else {
                     if (opcode != Opcode.SKIPCOND)
@@ -146,13 +147,9 @@ class MarieInterpreter {
 
     public tokenize(instructions: string): Array<Instruction> {
         var ins: Array<Instruction> = [];
-
         instructions = instructions.replace("\r\n", "\n");
         instructions = instructions.replace("\r", "\n");
-        instructions = instructions.replace("\n+", "\n");
         instructions = instructions.replace(/\t+/g, " ");
-        instructions = instructions.trim();
-        // console.log(instructions);
         var lines = instructions.split("\n");
         lines.forEach((line, index) => {
             line = line.trim();
