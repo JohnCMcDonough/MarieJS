@@ -245,6 +245,15 @@ class MarieInterpreter {
         if (this.onExecutionResumed) this.onExecutionResumed();
         this.run();
     }
+    
+    private clampValues() {
+        this.Accumulator &= 0xFFFF;
+        this.MemoryBufferRegister &= 0xFFFF;
+        this.MemoryAddressRegister &= 0xFFFF;
+        this.ProgramCounter &= 0xFFFF;
+        this.Input &= 0xFFFF;
+        this.InstructionRegister &= 0xFFFF;
+    }
 
     public step() {
         // console.log(this.isRunning, this.isFinishedExecuting, this.isWaitingOnInput);
@@ -253,6 +262,7 @@ class MarieInterpreter {
             this.InstructionRegister = this.memory[this.MemoryAddressRegister];
             this.ProgramCounter++;
             this.interpret();
+            this.clampValues();
             if (this.onTick) this.onTick();
         }
     }
