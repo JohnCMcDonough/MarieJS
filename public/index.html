@@ -33,11 +33,13 @@
 				<div class="col-sm-6">
 					<div class="panel panel-primary">
 						<div class="panel-body clearfix">
-							<button class="btn btn-default" ng-click="mc.playPause()" ng-disabled="mc.interpreter.isFinishedExecuting">
-								<i class="fa fa-play" ng-if="!mc.interpreter.isRunning"></i>
+							<button class="btn btn-default" ng-click="mc.playPause()">
+								<i class="fa fa-play" ng-if="!mc.interpreter.isRunning && !mc.interpreter.isFinishedExecuting"></i>
 								<i class="fa fa-pause" ng-if="mc.interpreter.isRunning"></i>
+								<i class="fa fa-repeat" ng-if="!mc.interpreter.isRunning && mc.interpreter.isFinishedExecuting"></i>
 							</button>
 							<button class="btn btn-default" ng-click="mc.interpreter.step()" ng-disabled="mc.interpreter.isFinishedExecuting"><i class="fa fa-step-forward"></i></button>
+							{{mc.interpreter.delayInMS}}
 							<div style="display:inline-block;margin-top:5px" class="pull-right">
 								<b>Clock Frequency:</b> 1Hz <input style="width:100px;display:inline;top:3px;position:relative" type="range" min="1" max="1000" step="20" ng-model="mc.cpuFreq" /> 1kHz
 							</div>

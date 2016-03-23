@@ -42,7 +42,7 @@ class MarieInterpreter {
 
     public isRunning = false;
     public isWaitingOnInput = false;
-    public isFinishedExecuting = false;
+    public isFinishedExecuting = true;
     public symbolTable: { [label: string]: number };
     public instructions: Array<Instruction>;
     public rawInstructions: Array<Instruction>;
