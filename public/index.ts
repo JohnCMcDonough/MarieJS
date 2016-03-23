@@ -19,13 +19,14 @@ b, DEC 15`;
     public instructionsCount = 0;
 
     private editor: CodeMirror.Editor;
-	private editorOptions: CodeMirror.EditorConfiguration = {
+	private defaultEditorOptions: CodeMirror.EditorConfiguration = {
 		lineWrapping: true,
 		lineNumbers: true,
 		readOnly: false,
 		gutters: ['breakpoint-gutter'],
 		firstLineNumber: 0,
 		lineNumberFormatter: (ln) => "0x" + ln.toString(16),
+
 	}
 	lintTimeout = 0;
 	cpuFreq = 500;
@@ -58,7 +59,13 @@ b, DEC 15`;
         }
         try {
 			this.interpreter.lint(this.code);
+			this.interpreter.onFinishedCompile = ()=>{
+				this.editor.setOption("readOnly",false)
+				this.editor.refresh();
+			}
             this.interpreter.onTick = () => {
+				this.editor.setOption("readOnly","nocursor")
+				this.editor.refresh();
                 this.instructionsCount++;
                 if (this.debounceTimer) {
                     clearTimeout(this.debounceTimer);
@@ -78,6 +85,7 @@ b, DEC 15`;
             }
             this.interpreter.onExecutionFinished = () => {
                 console.info(this.interpreter.outputBuffer);
+				this.defaultEditorOptions.readOnly = false;
             }
         }
         catch (err) {
@@ -106,6 +114,7 @@ b, DEC 15`;
             this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
+			this.clean = true;
 		}
 	}
 
@@ -121,7 +130,7 @@ b, DEC 15`;
 	codemirrorLoaded(editor: CodeMirror.Editor) {
 		this.editor = editor;
 		this.editor.on("gutterClick", this.codeEditorGutterClick.bind(this));
-		this.editor.on("change",this.rebuildBreakPoints.bind(this));
+		this.editor.on("change", this.rebuildBreakPoints.bind(this));
 	}
 
 	private breakpoints: Array<boolean> = [];

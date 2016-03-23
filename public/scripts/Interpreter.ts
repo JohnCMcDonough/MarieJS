@@ -60,7 +60,8 @@ class MarieInterpreter {
     public onExecutionResumed: () => void;
     public onExecutionFinished: () => void;
     public onOutput: (char: string) => void;
-    public onTick: () => void
+    public onTick: () => void;
+	public onFinishedCompile: ()=>void;
 
 
     public IRToLine: { [IR: number]: number } = [];
@@ -106,6 +107,7 @@ class MarieInterpreter {
         this.rawInstructions = objects;
         this.instructions = this.assemble(objects, this.symbolTable);
         this.memory = this.fillMemory(this.instructions);
+		if(this.onFinishedCompile) this.onFinishedCompile();
     }
 
     public buildSymbolTable(instructions: Array<Instruction>): { [label: string]: number } {
