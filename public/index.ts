@@ -40,12 +40,15 @@ b, DEC 15`;
 			this.lintTimeout = setTimeout(this.lintCode.bind(this), 500);
 		})
 		
-		this.$scope.$watch('mc.cpuFreq', () => {
-			this.interpreter.delayInMS = 1000/this.cpuFreq;
-		})
-		this.interpreter.delayInMS = 1000/this.cpuFreq;
+		var freqToPeriod = () => {
+			const EXP_GAIN = 1/10;
+			this.interpreter.delayInMS = 1000*Math.pow(Math.E,-.005*this.cpuFreq); 
+		}
+		
+		this.$scope.$watch('mc.cpuFreq', freqToPeriod)
+		freqToPeriod();
     }
-    highlightedLine:CodeMirror.LineHandle;
+    highlightedLine: CodeMirror.LineHandle;
     lintCode() {
         if (this.editor) {
             // this.editor.clearGutter("note-gutter");
@@ -65,9 +68,9 @@ b, DEC 15`;
                 }
                 this.debounceTimer = setTimeout(this.safeApply.bind(this), 5);
                 var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
-                if(this.highlightedLine)
-                    this.editor.removeLineClass(this.highlightedLine,"background","active-line");
-                this.highlightedLine = this.editor.addLineClass(line,"background","active-line");
+                if (this.highlightedLine)
+                    this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
+                this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
             }
             this.interpreter.onOutput = () => {
                 // this.safeApply();
@@ -101,19 +104,24 @@ b, DEC 15`;
 
 	assemble() {
 		this.lintCode();
-        if(this.editor && this.highlightedLine) 
-            this.editor.removeLineClass(this.highlightedLine,"background","active-line");
+        if (this.editor && this.highlightedLine)
+            this.editor.removeLineClass(this.highlightedLine, "background", "active-line");
 		if (this.codeErrors.length == 0) {
 			this.interpreter.performFullCompile(this.code);
 		}
 	}
-	
+
 	playPause() {
 		if (this.interpreter.isRunning) {
 			this.interpreter.pauseExecution();
 		}
 		else {
-			this.interpreter.resumeExecution();
+			if (this.interpreter.isFinishedExecuting) {
+				this.assemble();
+			}
+			else {
+				this.interpreter.resumeExecution();
+			}
 		}
 	}
 
