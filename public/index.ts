@@ -84,7 +84,7 @@ b, DEC 15`;
                 this.instructionsCount++;
                 if (!this.debounceTimer) {
                     this.debounceTimer = +setTimeout(() => {
-                        this.safeApply()
+
 
                         var line = this.interpreter.IRToLine[this.interpreter.InstructionRegister] - 1;
                         if (this.highlightedLine)
@@ -92,7 +92,7 @@ b, DEC 15`;
                         this.highlightedLine = this.editor.addLineClass(line, "background", "active-line");
                         this.editor.scrollIntoView({ line: line, ch: 0 }, 100);
                         this.$rootScope.$emit("setActiveMemory", this.interpreter.MemoryAddressRegister, this.interpreter.ProgramCounter);
-
+                        this.safeApply()
                         this.debounceTimer = null;
                     }, 50);
                 }
@@ -298,8 +298,8 @@ app.filter('padHex', () => (x: string, padSize = 4) => {
     for (var i = 0; i < padSize - x.length; i++) r += "0";
     return r + x;
 });
-app.filter("toDec",()=>(num: number)=> num >> 15 ? 0xFFFFFFFFFFFF0000 | (num & 0xFFFF) : num);
+app.filter("toDec", () => (num: number) => num >> 15 ? 0xFFFFFFFFFFFF0000 | (num & 0xFFFF) : num);
 
 app.filter('numberArrayToString', () => (x: Array<number>) => x && x.map((v) => String.fromCharCode(v)).join(""));
 app.filter('numberArrayToHex', ["$filter", ($filter) => (x: Array<number>) => { x && x.map((v) => "0x" + $filter("toHex")(v)).join() }]);
-app.filter('numberArrayToDecimal', ["$filter",($filter) => (x: Array<number>) => x && x.map(dec=>$filter("toDec")(dec)).join()]);
+app.filter('numberArrayToDecimal', ["$filter", ($filter) => (x: Array<number>) => x && x.map(dec => $filter("toDec")(dec)).join()]);
