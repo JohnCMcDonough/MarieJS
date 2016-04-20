@@ -31,6 +31,40 @@ class CompilerError {
     }
 }
 
+function ToInteger(x) {
+    x = Number(x);
+    return x < 0 ? Math.ceil(x) : Math.floor(x);
+}
+function modulo(a, b) {
+    return a - Math.floor(a / b) * b;
+}
+
+function ToUint32(x) {
+    return modulo(ToInteger(x), Math.pow(2, 32));
+}
+
+function ToInt32(x) {
+    var uint32 = ToUint32(x);
+    if (uint32 >= Math.pow(2, 31)) {
+        return uint32 - Math.pow(2, 32)
+    } else {
+        return uint32;
+    }
+}
+
+function ToUint16(x) {
+    return modulo(ToInteger(x), Math.pow(2, 16));
+}
+
+function ToInt16(x) {
+    var uint32 = ToUint32(x);
+    if (uint32 >= Math.pow(2, 15)) {
+        return uint32 - Math.pow(2, 16)
+    } else {
+        return uint32;
+    }
+}
+
 class MarieInterpreter {
 
     public Accumulator = 0x0000;
@@ -261,7 +295,7 @@ class MarieInterpreter {
             this.MemoryAddressRegister = this.ProgramCounter;
             this.InstructionRegister = this.memory[this.MemoryAddressRegister];
             this.ProgramCounter++;
-			this.clampValues();
+            this.clampValues();
             if (this.onTick) this.onTick();
             this.interpret();
         }
@@ -319,13 +353,13 @@ class MarieInterpreter {
                 if (this.onExecutionFinished) this.onExecutionFinished();
                 break;
             case Opcode.SKIPCOND:
-                if (param >> 10 == 0x0002 && this.Accumulator > 0) {
+                if (param >> 10 == 0x0002 && ToInt16(this.Accumulator) > 0) {
                     // console.log(this.Accumulator,"> 0")
                     this.ProgramCounter++;
-                } else if (param >> 10 == 0x0001 && this.Accumulator == 0) {
+                } else if (param >> 10 == 0x0001 && ToInt16(this.Accumulator) == 0) {
                     // console.log(this.Accumulator,"== 0")
                     this.ProgramCounter++;
-                } else if (param >> 10 == 0x0000 && this.Accumulator < 0) {
+                } else if (param >> 10 == 0x0000 && ToInt16(this.Accumulator) < 0) {
                     // console.log(this.Accumulator,"< 0")
                     this.ProgramCounter++;
                 }
