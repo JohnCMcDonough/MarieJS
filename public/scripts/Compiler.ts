@@ -24,6 +24,7 @@ class Compiler {
     private LITERAL_COUNT = 0;
     private CONDITIONAL_COUNT = 0;
     private WHILE_COUNT = 0;
+    private IF_COUNT = 0;
 	private ARRAY_COUNT = 0;
     
     private static SKIP_NEGATIVE = "0";
@@ -60,6 +61,7 @@ class Compiler {
         this.functions.forEach(f=>{
             instructions.merge(f.instructions);
         })
+        console.log(instructions);
         return instructions;
     }
     
@@ -349,9 +351,9 @@ class Compiler {
             break;
             case ">":
                 instructions = [
-                    { opcode: "SKIPCOND", param: Compiler.SKIP_NEGATIVE },
-                    { opcode: "TRUE" },
-                    { opcode: "FALSE" }
+                    { opcode: "SKIPCOND", param: Compiler.SKIP_POSITIVE },
+                    { opcode: "FALSE" },
+                    { opcode: "TRUE" }
                 ]
             break;
             case "<=":
@@ -388,6 +390,42 @@ class Compiler {
         }
         node.instructions.merge(instructions);
         this.CONDITIONAL_COUNT++;
+    }
+    
+    IfStatement(node,isExiting) {
+        if(!isExiting) return;
+        node.instructions.merge(node.test.instructions);
+        var true_label = "IF_" + this.IF_COUNT + "_TRUE";
+        var false_label = "IF_" + this.IF_COUNT + "_FALSE";
+        
+        if(node.consequent && node.consequent.instructions[0]) {
+            node.consequent.instructions[0].label = node.consequent.instructions[0].label || true_label;
+            true_label = node.consequent.instructions[0].label;
+            node.consequent.instructions.merge({opcode:"JUMP", param:"IF_" + this.IF_COUNT + "_END"})
+        } else {
+            true_label = "IF_" + this.IF_COUNT + "_END";
+        }
+        
+        if(node.alternate && node.alternate.instructions[0]) {
+            node.alternate.instructions[0].label = node.alternate.instructions[0].label || false_label;
+            false_label = node.alternate.instructions[0].label;
+        } else {
+            false_label = "IF_" + this.IF_COUNT + "_END";
+        }
+        
+        if(node.consequent)node.instructions.merge(node.consequent.instructions);
+        if(node.alternate)node.instructions.merge(node.alternate.instructions);
+        node.instructions.merge({opcode:"CLEAR", label:"IF_" + this.IF_COUNT++ + "_END"});
+        node.instructions.forEach(ins=>{
+            if(ins.opcode == "TRUE") {
+                ins.opcode = "JUMP"
+                ins.param = true_label;
+            }
+            if(ins.opcode == "FALSE") {
+                ins.opcode = "JUMP"
+                ins.param = false_label;
+            }
+        })
     }
     
     WhileStatement(node,isExiting:boolean) {
