@@ -1,0 +1,23 @@
+{
+  "name": "mariejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "InterpreterExample.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnCMcDonough/MarieJS.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JohnCMcDonough/MarieJS/issues"
+  },
+  "homepage": "https://github.com/JohnCMcDonough/MarieJS#readme",
+  "dependencies": {
+    "ast-traverse": "^0.1.1",
+    "esprima": "^3.1.3"
+  }
+}

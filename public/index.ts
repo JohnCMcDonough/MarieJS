@@ -16,15 +16,11 @@ b, DEC 15`;
 // There is no code linting....
 // There is no code validation....
 // This may not generate valid assembly...
-// This may or may not be totally awesome...
 // There is no breakpoint debugging (as of yet)
-// There is no runtime, therefor no concept of errors. Arrays don't have bounds checking. BE CAREFUL.
 // most of all....
 
-// THERE IS NO VARAIABLE SCOPING.
-// THE ONLY THING SCOPED IS FUNCTION PARAMETERS.
-// RECURSION IS NOT A THING!!!
-// DON'T REUSE VARIABLE NAMES!!!!!!!!!!
+// VARIABLES ARE DEFINED AT THE FUNCTION LEVEL, NOT BLOCK LEVEL.
+// ALSO, RECURSION DOESN'T WORK EITHER. THERE IS NO STACK.
 
 // THIS DOESN'T WORK
 //  var i = 0;
@@ -42,7 +38,104 @@ b, DEC 15`;
 // input() // reads and returns a single character.
 // output(char) // writes out a single character.
 
-// HELPER FUNCTIONS
+////////////////////////////////////////////////////////////////////
+/////////////////////////// EXAMPLE CODE ///////////////////////////
+////////////////////////////////////////////////////////////////////
+
+/*
+writeline("Enter your name...");
+var name = new Array(20);
+getstring(name);
+write("hello ");
+writeline(name);
+*/
+
+/*
+var string_name = new Array(20);
+var string_age = new Array(20);
+var age = 0;
+var string_yearsUntil = new Array(20);
+var yearsUntil = 0;
+writeline("Please enter your name...");
+getstring(string_name);
+writeline("Please enter your age...");
+getstring(string_age);
+age = parseInt(string_age);
+yearsUntil = 62 - age;
+
+intToString(yearsUntil,string_yearsUntil);
+write(string_name);
+write(", you've got ");
+write(string_yearsUntil);
+writeline(" years until you get Social Security");
+*/
+
+/*
+////////////////////////////////////////////////////////////////////
+//////////////////////// TUTORIAL FUNCTIONS ////////////////////////
+////////////////////////////////////////////////////////////////////
+function multiply(a,b) {
+  var count = 0;
+  for(var i = 0; i < b; i++) {
+    count = count + a;
+  }
+  return count;
+}
+var mult = multiply(20,3);
+output(mult)
+
+// for loops
+for(var i = 0; i <= 10; i++) {
+    output(i)
+}
+
+// while loops
+var x = 0;
+while(x < 10) {
+  x = x + x + 1;
+}
+
+// arrays
+var array = new Array(15);
+array[5] = 5;
+array[10] = 10;
+for(var i = 0; i < 15; i++) {
+  output(array[i])
+}
+
+// strings
+var hello = "hello world"; // this is really a null terminated array
+for(var i = 0; hello[i] != 0; i++) { // loop through the string until we hit a null character (end of string)
+ output(hello[i]) 
+}
+output('\\n')
+
+var waiting = "waiting on input...";
+for(var i = 0; waiting[i] != 0; i++) {
+ output(waiting[i]) 
+}
+output('\\n')
+
+// reading input
+function readInput(string_destination) {
+  var inp = input();
+  var index = 0;
+  while(inp != 0) {
+    string_destination[index] = inp;
+    index++;
+    inp = input()
+  }
+}
+var input = new Array(15);
+readInput(input);
+for(var i = 0; input[i] != 0; i++) {
+ output(input[i]) 
+}
+*/
+
+////////////////////////////////////////////////////////////////////
+////////////////////////// HELPER FUNCTIONS ////////////////////////
+////////////////////////////////////////////////////////////////////
 
 function write(string) {
     for(var i = 0; string[i] != 0; i++) {
@@ -128,97 +221,6 @@ function intToString(num,str) {
   }
   str[count] = places[0] + 48
 }
-
-/*
-writeline("Enter your name...");
-var name = new Array(20);
-getstring(name);
-write("hello ");
-writeline(name);
-*/
-
-/*
-var string_name = new Array(20);
-var string_age = new Array(20);
-var age = 0;
-var string_yearsUntil = new Array(20);
-var yearsUntil = 0;
-writeline("Please enter your name...");
-getstring(string_name);
-writeline("Please enter your age...");
-getstring(string_age);
-age = parseInt(string_age);
-yearsUntil = 62 - age;
-
-intToString(yearsUntil,string_yearsUntil);
-write(string_name);
-write(", you've got ");
-write(string_yearsUntil);
-writeline(" years until you get Social Security");
-*/
-
-/*
-// TUTORIAL...
-// functions
-function multiply(a,b) {
-  var count = 0;
-  for(var i = 0; i < b; i++) {
-    count = count + a;
-  }
-  return count;
-}
-var mult = multiply(20,3);
-output(mult)
-
-// for loops
-for(var i = 0; i <= 10; i++) {
-    output(i)
-}
-
-// while loops
-var x = 0;
-while(x < 10) {
-  x = x + x + 1;
-}
-
-// arrays
-var array = new Array(15);
-array[5] = 5;
-array[10] = 10;
-for(var i = 0; i < 15; i++) {
-  output(array[i])
-}
-
-// strings
-var hello = "hello world"; // this is really a null terminated array
-for(var i = 0; hello[i] != 0; i++) { // loop through the string until we hit a null character (end of string)
- output(hello[i]) 
-}
-output('\\n')
-
-var waiting = "waiting on input...";
-for(var i = 0; waiting[i] != 0; i++) {
- output(waiting[i]) 
-}
-output('\\n')
-
-// reading input
-function readInput(string_destination) {
-  var inp = input();
-  var index = 0;
-  while(inp != 0) {
-    string_destination[index] = inp;
-    index++;
-    inp = input()
-  }
-}
-var input = new Array(15);
-readInput(input);
-for(var i = 0; input[i] != 0; i++) {
- output(input[i]) 
-}
-*/
-
 `;
     codeErrors: string[];
     lineError: number = -1;
@@ -357,7 +359,7 @@ for(var i = 0; input[i] != 0; i++) {
 
     assemble() {
         if(this.currentEditorView == 'mcdscript') {
-            var ast = esprima.parse(this.mcdscriptDocument.getValue());
+            var ast = window["esprima"].parse(this.mcdscriptDocument.getValue());
             var comp = new Compiler(ast);
             var ins = comp.compile();
             var diff = ins.length;
@@ -395,7 +397,7 @@ for(var i = 0; input[i] != 0; i++) {
 
     codemirrorLoaded(editor: CodeMirror.Editor) {
         this.editor = editor;
-        window.editor = editor;
+        window["editor"] = editor;
         this.assemblyDocument = new CodeMirror.Doc(this.defaultCode);
         this.mcdscriptDocument = new CodeMirror.Doc(this.defaultmcdScript);
         this.editor.swapDoc(this.assemblyDocument);

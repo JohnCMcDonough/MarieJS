@@ -20,10 +20,10 @@ enum Opcode {
 }
 
 interface Instruction {
-    opcode: Opcode;
+    opcode: Opcode|string;
     label?: string,
     param?: number
-    linenumber: number
+    linenumber?: number
 }
 
 class CompilerError {
@@ -225,10 +225,10 @@ class MarieInterpreter {
             } else if (instructions[index].opcode == Opcode.HEX) {
                 memory[i] = parseInt("" + instructions[index].param, 16) & 0xFFFF;
             } else if (instructions[index].opcode == Opcode.SKIPCOND) {
-                memory[i] = (instructions[index].opcode & 0xF) << 12;
+                memory[i] = (+instructions[index].opcode & 0xF) << 12;
                 memory[i] |= parseInt("" + instructions[index].param, 16) & 0x0FFF;
             } else {
-                memory[i] = (instructions[index].opcode & 0xF) << 12;
+                memory[i] = (+instructions[index].opcode & 0xF) << 12;
                 memory[i] |= instructions[index].param & 0x0FFF;
             }
             this.IRToLine[memory[i]] = this.instructions[index].linenumber;
