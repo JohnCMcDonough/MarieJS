@@ -394,6 +394,10 @@ function intToString(num,str) {
             }
         }
     }
+    step() {
+        this.$rootScope.$emit("memoryUpdate", -1);
+        this.interpreter.step();
+    }
 
     codemirrorLoaded(editor: CodeMirror.Editor) {
         this.editor = editor;
