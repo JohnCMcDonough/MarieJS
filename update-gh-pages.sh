@@ -1,5 +1,4 @@
-bower install
-tsc
+./build.sh
 cd public;
 echo "Copying js..."
 rsync -Rv ./**/*.js ../../MarieJS-demo/
