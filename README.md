@@ -6,7 +6,7 @@ A demo version is available [here](https://johncmcdonough.github.io/MarieJS-demo
 
 ## Installation
 
-To install build the project, you must have the typescript npm module installed.
+To build the project, you must have nodejs and npm installed, as well as the typescript npm module.
 
 Run the build.sh script
 
